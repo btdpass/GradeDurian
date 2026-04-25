@@ -1,0 +1,71 @@
+diff --git a/node_modules/studentvue/lib/StudentVue/Client/Client.js b/node_modules/studentvue/lib/StudentVue/Client/Client.js
+index a038a16..6bee7fb 100644
+--- a/node_modules/studentvue/lib/StudentVue/Client/Client.js
++++ b/node_modules/studentvue/lib/StudentVue/Client/Client.js
+@@ -614,10 +614,8 @@
+           });
+         };
+         if (fresh || reportingPeriodIndex == null) {
+-          console.log("Reporting Period: ", reportingPeriodIndex);
+           mykeysbro();
+           fetchBranch().then(async result => {
+-            console.log("Fetched fresh data");
+             const cachedData = await _asyncStorage.default.getItem("xmlCache2");
+             const m = JSON.parse(cachedData ?? "{}");
+             const identifier = this.district + this.username + reportingPeriodIndex + (orgYearGu ?? "");
+diff --git a/node_modules/studentvue/lib/utils/soap/Client/Client.js b/node_modules/studentvue/lib/utils/soap/Client/Client.js
+index 3458edc..3d89160 100644
+--- a/node_modules/studentvue/lib/utils/soap/Client/Client.js
++++ b/node_modules/studentvue/lib/utils/soap/Client/Client.js
+@@ -138,7 +138,7 @@
+           }
+           return response.text();
+         }).then(data => {
+-          const parser = new _fastXmlParser.XMLParser({});
++          const parser = new _fastXmlParser.XMLParser({ processEntities: { enabled: true, maxTotalExpansions: 10000 } });
+           const result = parser.parse(data);
+           const parserTwo = new _fastXmlParser.XMLParser({
+             ignoreAttributes: false,
+@@ -147,7 +147,8 @@
+             },
+             processEntities: false,
+             parseAttributeValue: false,
+-            parseTagValue: false
++            parseTagValue: false,
++            maxEntityCount: 10000
+           });
+           const obj = parserTwo.parse(preparse(result['soap:Envelope']['soap:Body'].ProcessWebServiceRequestResponse.ProcessWebServiceRequestResult));
+           if (defaultOptions.validateErrors && typeof obj === 'object' && 'RT_ERROR' in obj) {
+@@ -215,10 +216,11 @@
+           }
+           return response.text();
+         }).then(data => {
+-          const parser = new _fastXmlParser.XMLParser({});
++          const parser = new _fastXmlParser.XMLParser({ processEntities: { enabled: true, maxTotalExpansions: 10000 } });
+           const result = parser.parse(data);
+           const parserTwo = new _fastXmlParser.XMLParser({
+-            ignoreAttributes: false
++            ignoreAttributes: false,
++            maxEntityCount: 10000
+           });
+           const obj = parserTwo.parse(preparse(result['soap:Envelope']['soap:Body'].ProcessWebServiceRequestResponse.ProcessWebServiceRequestResult));
+           if (defaultOptions.validateErrors && typeof obj === 'object' && 'RT_ERROR' in obj) {
+@@ -281,7 +283,7 @@
+           } else {
+             var data = realResponse.response;
+           }
+-          const parser = new _fastXmlParser.XMLParser({});
++          const parser = new _fastXmlParser.XMLParser({ processEntities: { enabled: true, maxTotalExpansions: 10000 } });
+           const result = parser.parse(data);
+           const parserTwo = new _fastXmlParser.XMLParser({
+             ignoreAttributes: false,
+@@ -290,7 +292,8 @@
+             },
+             processEntities: false,
+             parseAttributeValue: false,
+-            parseTagValue: false
++            parseTagValue: false,
++            maxEntityCount: 10000
+           });
+           const obj = parserTwo.parse(preparse(result['soap:Envelope']['soap:Body'].ProcessWebServiceRequestMultiWebResponse.ProcessWebServiceRequestMultiWebResult));
+           if (defaultOptions.validateErrors && typeof obj === 'object' && 'RT_ERROR' in obj) {
