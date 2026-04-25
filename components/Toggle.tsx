@@ -8,7 +8,22 @@ export default function DarkModeToggle(){
 
 
   useEffect(() => {
-    const root = window.document.documentElement; // This is the <html> element
+    const root = window.document.documentElement;
+    root.classList.add('no-transition');
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        root.classList.remove('no-transition');
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
     if (isDarkMode) {
       root.classList.add('dark');
     } else {
