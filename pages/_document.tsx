@@ -10,6 +10,16 @@ export default class MyDocument extends Document {
 					<link rel="apple-touch-icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH}/assets/icon.png`} />
 				</Head>
 				<body>
+					<script dangerouslySetInnerHTML={{ __html: `
+						(function() {
+							try {
+								var theme = document.cookie.match(/theme=([^;]+)/);
+								var isDark = theme ? theme[1] === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+								if (isDark) document.documentElement.classList.add('dark');
+								document.documentElement.style.backgroundColor = isDark ? '#111827' : '#f9fafb';
+							} catch(e) {}
+						})();
+					`}} />
 					<Main />
 					<NextScript />
 				</body>

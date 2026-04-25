@@ -59,24 +59,26 @@ function LogoButton({ openInFrame, basePath }: { openInFrame: () => void, basePa
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			transition={{ delay: 0.4, duration: 0.4 }}
-			className="flex flex-col items-center gap-3 cursor-pointer"
+			className="flex flex-col items-center gap-3"
 			onClick={openInFrame}
-			onHoverStart={handleHoverStart}
-			onHoverEnd={handleHoverEnd}
 		>
-			<div className="relative">
-					<motion.div
+			<motion.div
+				className="relative cursor-pointer"
+				onHoverStart={handleHoverStart}
+				onHoverEnd={handleHoverEnd}
+			>
+				<motion.div
 					animate={{ scale: hovered ? 1 : [0.91, 1.12, 0.91], opacity: hovered ? 0 : 0.25 }}
 					transition={{ scale: { duration: 2, repeat: hovered ? 0 : Infinity, ease: "easeInOut" }, opacity: { duration: 0.4 } }}
 					className="absolute inset-0 rounded-full bg-primary-400"
 				/>
 				<motion.img
 					src={`${basePath}/assets/logo.png`}
-					style={{ rotate: rotation, scale: scaleVal }}
+					style={{ rotate: rotation, scale: scaleVal, clipPath: 'circle(50%)' }}
 					className="w-24 h-24 relative"
 				/>
-			</div>
-			<span className="text-sm font-medium text-gray-400 dark:text-gray-500 tracking-widest uppercase">Tap to Launch</span>
+			</motion.div>
+			<span className="text-sm font-medium text-gray-400 dark:text-gray-500 tracking-widest uppercase cursor-pointer">Tap to Launch</span>
 		</motion.div>
 	);
 }
@@ -104,12 +106,12 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
-	const [gated, setGated] = useState(false);
+	const [gated, setGated] = useState(true);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-		if (typeof window !== 'undefined' && window === window.top && !isMobile) {
-			setGated(true);
+		if (isMobile || window !== window.top) {
+			setGated(false);
 		}
 	}, []);
 
