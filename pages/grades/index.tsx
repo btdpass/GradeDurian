@@ -422,7 +422,7 @@ export default function Grades({
 											</Link>
 										</div>
 										<div className="">
-											<div className="flex items-center justify-between">
+											<div className="flex items-end justify-between">
 												<div
 												className="flex-col"
 												>

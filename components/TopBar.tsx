@@ -150,7 +150,7 @@ try{
 					<Link href={client ? "/grades" : "/"} className="flex items-center">
 						<img
 							src={`${process.env.NEXT_PUBLIC_BASE_PATH}/assets/logo.png`}
-							className="mr-3 h-6 sm:h-9"
+							className="mr-1.5 sm:mr-3 h-7 w-7 sm:h-9 sm:w-9 object-contain"
 							alt="Grade Durian Logo"
 						/>
 						<span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">

@@ -5,13 +5,8 @@ export default function PrivacyPolicyWebPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
-        Privacy Policy (Website)
+        Privacy Policy
       </h1>
-
-      <p className="mt-4 text-base text-gray-700 dark:text-gray-300">
-        This Privacy Policy applies only to the Grade Durian website and does not
-        apply to the Grade Durian iOS app or other services.
-      </p>
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -35,13 +30,11 @@ export default function PrivacyPolicyWebPage() {
         </ul>
 
         <h3 className="mt-6 text-base font-semibold text-gray-900 dark:text-white">
-          Academic data (website only)
+          Academic data
         </h3>
         <ul className="mt-2 list-disc pl-6 text-gray-700 dark:text-gray-300">
           <li>
-            When using the Grade Durian website, academic data is retrieved from
-            school systems via a proxy and is relayed to the user’s browser to
-            provide the service.
+            Academic data is retrieved from school systems via a proxy and is relayed to the user’s browser to provide the service.
           </li>
         </ul>
 
@@ -66,7 +59,7 @@ export default function PrivacyPolicyWebPage() {
           <li>Authentication data is hashed or encrypted</li>
           <li>No plain-text passwords are stored</li>
           <li>
-            Academic data processed by the website is handled transiently and is
+            Academic data is handled transiently and is
             not retained beyond what is necessary to fulfill user requests
           </li>
         </ul>

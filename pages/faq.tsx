@@ -79,6 +79,19 @@ export default function FAQ({width,createError,donation,client}:any) {
 
 				<details className="group [&_summary::-webkit-details-marker]:hidden">
 					<summary className="flex items-center justify-between p-4 rounded-lg cursor-pointer bg-white dark:bg-gray-800 border dark:border-gray-700 dark:text-white">
+						<h2 className="font-medium">What is Grade Durian?</h2>
+						<svg className="ml-1.5 h-5 w-5 flex-shrink-0 transition duration-300 group-open:-rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+						</svg>
+					</summary>
+					<div className="px-4 mt-4 leading-relaxed dark:text-white space-y-3">
+						<p>Grade Durian was built on top of the original Grade Melon project. When Grade Melon became unmaintained, Grade Durian was created as a separate, independent fork that continues to be actively developed and improved.</p>
+						<p>While the two share the same roots, Grade Durian is independently developed with its own branding and direction. We are not affiliated with or endorsed by the original Grade Melon.</p>
+					</div>
+				</details>
+
+				<details className="group [&_summary::-webkit-details-marker]:hidden">
+					<summary className="flex items-center justify-between p-4 rounded-lg cursor-pointer bg-white dark:bg-gray-800 border dark:border-gray-700 dark:text-white">
 						<h2 className="font-medium">Is Grade Durian open source?</h2>
 						<svg className="ml-1.5 h-5 w-5 flex-shrink-0 transition duration-300 group-open:-rotate-180" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
