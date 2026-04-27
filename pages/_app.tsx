@@ -110,7 +110,7 @@ function MyApp({ Component, pageProps }) {
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-		if (isMobile || window !== window.top) {
+		if (isMobile || window !== window.top || window.location.hostname === 'localhost') {
 			setGated(false);
 		}
 	}, []);

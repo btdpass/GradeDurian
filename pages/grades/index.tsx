@@ -63,6 +63,41 @@ export default function Grades({
 	//const [period, setMP] = useState<number>();
 	const [gpaModal, setGpaModal] = useState(false);
 	const view = (router.query.view as string) || defaultView;
+	const [countdown, setCountdown] = useState<{period: number, label: string} | null>(null);
+
+	useEffect(() => {
+		function parseTime(val: any): Date {
+			const d = new Date();
+			const str = String(val).trim();
+			const [time, meridiem] = str.split(' ');
+			let [h, m] = time.split(':').map(Number);
+			if (meridiem === 'PM' && h !== 12) h += 12;
+			if (meridiem === 'AM' && h === 12) h = 0;
+			d.setHours(h, m, 0, 0);
+			return d;
+		}
+		function tick() {
+			const today = client?.loadedSchedule?.today;
+			if (!today) { setCountdown(null); return; }
+			const all = [...(today.main || []), ...(today.con || [])];
+			const now = new Date();
+			const active = all.find(c => {
+				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
+				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
+				return now >= s && now <= e;
+			});
+			if (!active) { setCountdown(null); return; }
+			const end = parseTime(Array.isArray(active.end) ? active.end[0] : active.end);
+			const diff = Math.max(0, end.getTime() - now.getTime());
+			const m = Math.floor(diff / 60000);
+			const s = Math.floor((diff % 60000) / 1000);
+			const p = Array.isArray(active.period) ? active.period[0] : active.period;
+			setCountdown({ period: parseInt(p), label: `${m}m ${s}s left` });
+		}
+		tick();
+		const id = setInterval(tick, 1000);
+		return () => clearInterval(id);
+	}, [client?.loadedSchedule]);
 
 	//@ts-ignore
 	const mcps=client?.district=="https://md-mcps-psv.edupoint.com/Service/PXPCommunication.asmx"
@@ -418,6 +453,11 @@ export default function Grades({
 													>
 														{teacher.name}
 													</motion.p>
+													{countdown?.period === period && (
+														<p className="text-xs font-medium text-primary-500 mt-1">
+															{countdown.label}
+														</p>
+													)}
 												</div>
 											</Link>
 										</div>
