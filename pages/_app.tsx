@@ -106,7 +106,7 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
-	const [gated, setGated] = useState(true); // url masking
+	const [gated, setGated] = useState(false); // url masking
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -132,7 +132,7 @@ function MyApp({ Component, pageProps }) {
 	};
 
 	//const apiUrl="http://localhost:3001"
-	const apiUrl="https://gradedurianproxytest-production.up.railway.app"
+	const apiUrl="https://gradedurianproxy.up.railway.app"
 	//const apiUrl="https://studentvuelibtest.up.railway.app"
 
 
