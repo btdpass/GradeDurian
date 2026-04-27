@@ -132,7 +132,7 @@ function MyApp({ Component, pageProps }) {
 	};
 
 	//const apiUrl="http://localhost:3001"
-	const apiUrl="https://gradedurianproxy.up.railway.app"
+	const apiUrl="https://gradedurianproxy1.up.railway.app"
 	//const apiUrl="https://studentvuelibtest.up.railway.app"
 
 
@@ -158,6 +158,8 @@ function MyApp({ Component, pageProps }) {
 		encrypted?:boolean
 	) => {
 		await setLoading(true);
+		localStorage.removeItem("infoCache")
+		localStorage.removeItem("xmlCache2")
 
 		const encryptedPass=getCourseSettings(username,password,encrypted,url);
 
@@ -481,6 +483,8 @@ useEffect(()=>{
 const logout = async () => {
 	await Cookies.remove("password");
 	localStorage.removeItem("mps")
+	localStorage.removeItem("infoCache")
+	localStorage.removeItem("xmlCache2")
 	await router.push("/login");
 	
 	setSchoolsList(undefined)
