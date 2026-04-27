@@ -65,6 +65,21 @@ export default function Grades({
 	const view = (router.query.view as string) || defaultView;
 	const [countdown, setCountdown] = useState<{period: number, label: string} | null>(null);
 
+	const [scheduleLoaded, setScheduleLoaded] = useState(false);
+
+	useEffect(() => {
+		if (client && !client.guest) {
+			if (client.loadedSchedule) {
+				setScheduleLoaded(true);
+			} else {
+				client.schedule().then(([res]) => {
+					client.loadedSchedule = res;
+					setScheduleLoaded(true);
+				}).catch(() => {});
+			}
+		}
+	}, [client]);
+
 	useEffect(() => {
 		function parseTime(val: any): Date {
 			const d = new Date();
@@ -97,7 +112,7 @@ export default function Grades({
 		tick();
 		const id = setInterval(tick, 1000);
 		return () => clearInterval(id);
-	}, [client?.loadedSchedule]);
+	}, [scheduleLoaded]);
 
 	//@ts-ignore
 	const mcps=client?.district=="https://md-mcps-psv.edupoint.com/Service/PXPCommunication.asmx"
@@ -429,8 +444,13 @@ export default function Grades({
 									<motion.div
 										layout="preserve-aspect"
 										layoutId={`card-${layoutID}`}
-										className="h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700"
+										className="relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700"
 									>
+										{countdown?.period === period && localStorage.getItem('showCountdown') !== 'false' && (
+											<span className="absolute top-3 right-3 text-xs font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-full px-2 py-0.5">
+												{countdown.label}
+											</span>
+										)}
 										<div className="">
 											<Link href={`/grades/${layoutID}`} legacyBehavior>
 												<div className="hover:cursor-pointer">
@@ -453,11 +473,6 @@ export default function Grades({
 													>
 														{teacher.name}
 													</motion.p>
-													{countdown?.period === period && (
-														<p className="text-xs font-medium text-primary-500 mt-1">
-															{countdown.label}
-														</p>
-													)}
 												</div>
 											</Link>
 										</div>

@@ -44,6 +44,7 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         //new stack based view version
         const [viewStack,setViewStack] = useState(["home"])
         const currentView=viewStack.at(-1)
+        const [showCountdown, setShowCountdown] = useState(typeof window !== 'undefined' ? localStorage.getItem('showCountdown') !== 'false' : true)
 
 
         const animationPropsHome = {
@@ -59,14 +60,15 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
 
 
 useEffect(()=>{
+  if(!showModal) return;
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
-  setFinals(course.settings.finals)    
-
-
+  setFinals(course.settings.finals)
+  setShowCountdown(localStorage.getItem('showCountdown') !== 'false')
+  setViewStack(["home"])
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
-},[period])
+},[period, showModal])
 
 
 
@@ -292,6 +294,7 @@ async function saveNew(){
     if(tempGrades){
       const ham=index!=-1 ? tempGrades[period].courses[index].settings : tempSettings.default
       localStorage.removeItem("xmlCache")
+      localStorage.setItem('showCountdown', String(showCountdown))
       setLetterScale(ham.letterScale)
       setRounding(ham.rounding)
       setFinals(ham.finals)
@@ -478,7 +481,24 @@ className="overflow-y-auto"
       className="flex flex-col gap-4"
     >
     <React.Fragment key="dont fw me twin">
-      <motion.button 
+      <motion.div
+        {...animationPropsHome}
+        key="countdown"
+        style={{borderWidth:1}}
+        className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-2 flex justify-between items-center"
+      >
+        <p className="text-lg font-semibold dark:text-white">Class Countdown</p>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={showCountdown}
+            onChange={(e) => setShowCountdown(e.target.checked)}
+          />
+          <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
+        </label>
+      </motion.div>
+      <motion.button
       {...animationPropsHome}
       key="letter"
       style={{borderWidth:1}}
