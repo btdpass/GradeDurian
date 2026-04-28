@@ -69,7 +69,7 @@ export default function Grades({
 	//const [period, setMP] = useState<number>();
 	const [gpaModal, setGpaModal] = useState(false);
 	const view = (router.query.view as string) || defaultView;
-	const [countdown, setCountdown] = useState<{period: number, label: string} | null>(null);
+	const [countdown, setCountdown] = useState<{period: number, label: string, ms: number} | null>(null);
 
 	const [scheduleLoaded, setScheduleLoaded] = useState(false);
 
@@ -100,23 +100,30 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date(); // now.setHours(13, 39); // TEST: 12:30 PM during AP Bio (12:05–1:40)
+			const now = new Date(); // now.setHours(13, 45); // TEST: 12:30 PM during AP Bio (12:05–1:40)
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
 				return now >= s && now <= e;
 			});
-			if (!active) { setCountdown(null); return; }
+			const fmtDiff = (ms: number) => {
+				const h = Math.floor(ms / 3600000);
+				const m = Math.floor((ms % 3600000) / 60000);
+				const s = Math.floor((ms % 60000) / 1000);
+				if (h > 0) return `${h}h ${m}m`;
+				if (m > 0) return `${m}m ${s}s`;
+				return `${s}s`;
+			};
 			const getName = (c: any) => Array.isArray(c.name) ? c.name[0] : c.name;
 			const getEnd = (c: any) => parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
+
+			if (!active) { setCountdown(null); return; }
 			const end = all
 				.filter(c => getName(c) === getName(active))
 				.reduce((latest, c) => { const e = getEnd(c); return e > latest ? e : latest; }, getEnd(active));
 			const diff = Math.max(0, end.getTime() - now.getTime());
-			const m = Math.floor(diff / 60000);
-			const s = Math.floor((diff % 60000) / 1000);
 			const p = Array.isArray(active.period) ? active.period[0] : active.period;
-			setCountdown({ period: parseInt(p), label: m > 0 ? `${m}m ${s}s left` : `${s}s left` });
+			setCountdown({ period: parseInt(p), label: `${fmtDiff(diff)}`, ms: diff });
 		}
 		tick();
 		const id = setInterval(tick, 1000);
@@ -130,6 +137,11 @@ export default function Grades({
 	const formatPeriods = (ps: number[]) =>
 		ps.length > 1 ? `${ps[0]} & ${ps[ps.length - 1]}` : String(ps[0]);
 	const currentMP = grades ? findCurrentPeriod(grades) : -1;
+	const urgencyClass = (ms: number, base: string) => {
+		if (ms < 60000) return 'bg-red-500 dark:bg-red-600 text-white';
+		if (ms < 300000) return 'bg-yellow-400 dark:bg-yellow-500 text-gray-900';
+		return base;
+	};
 	const countdownMatchesCourse = (coursePeriods: number[]) =>
 		!!countdown && mp === currentMP && coursePeriods.includes(countdown.period);
 
@@ -481,7 +493,7 @@ export default function Grades({
 													>
 														{teacher.name}
 														{countdownMatchesCourse(periods) && localStorage.getItem('showCountdown') !== 'false' && (
-															<span className="text-xs font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-full px-2 py-0.5">
+															<span className={`text-xs font-medium rounded-full px-2 py-0.5 ${urgencyClass(countdown.ms, 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300')}`}>
 																{countdown.label}
 															</span>
 														)}
@@ -489,53 +501,53 @@ export default function Grades({
 												</div>
 											</Link>
 										</div>
-										<div className="">
-											<div className="flex items-end justify-between">
-												<div
-												className="flex-col"
-												>
-												<motion.span
-													layoutId={`grade-${layoutID}`}
-													layout="preserve-aspect"
-													style={{color:grade.color.includes("#") && grade.color}}
-													className={`text-xl md:text-3xl font-bold text-${grade.color}-400`}
-												>
-													{grade.letter}
-													{settings ? (!isNaN(grade.raw) && ` (${grade.raw}%)`) : (!isNaN(grade.raw) ? `${grade.raw}%`:"")}
-												</motion.span>
-												{(settings.finals?.show && finalGrade) &&
-												<motion.div
-													layoutId={`final-${layoutID}`}
-													layout="preserve-aspect"
-													style={{color:finalGrade.color.includes("#") && finalGrade.color}}
-													className={`text-md md:text-xl font-bold text-${finalGrade.color}-400`}
-												>
-													Final, {finalGrade.letter} {!isNaN(finalGrade.raw) ? (`(${settings.rounding.percent ? (finalGrade.raw).toFixed(settings.rounding.percentPlaces) : finalGrade.raw}%)`) : ""}
-												</motion.div>}
-													{semesterGrade &&
-												<motion.div
-													layoutId={`semester-${layoutID}`}
-													layout="preserve-aspect"
-													style={{color:semesterGrade.color.includes("#") && semesterGrade.color}}
-													className={`text-md md:text-xl font-bold text-${semesterGrade.color}-400`}
-												>
-													{!settings?.finals?.isSemester && ordinalSuffix(indexX+1)} Semester, {semesterGrade.letter} {!isNaN(semesterGrade.raw) ? (`(${settings.rounding.percent ? (semesterGrade.raw).toFixed(settings.rounding.percentPlaces) : semesterGrade.raw}%)`) : ""}
-												</motion.div>}
-												</div>
+							<div className="">
+								<div className="flex items-end justify-between">
+									<div
+									className="flex-col"
+									>
+									<motion.span
+										layoutId={`grade-${layoutID}`}
+										layout="preserve-aspect"
+										style={{color:grade.color.includes("#") && grade.color}}
+										className={`text-xl md:text-3xl font-bold text-${grade.color}-400`}
+									>
+										{grade.letter}
+										{settings ? (!isNaN(grade.raw) && ` (${grade.raw}%)`) : (!isNaN(grade.raw) ? `${grade.raw}%`:"")}
+									</motion.span>
+									{(settings.finals?.show && finalGrade) &&
+									<motion.div
+										layoutId={`final-${layoutID}`}
+										layout="preserve-aspect"
+										style={{color:finalGrade.color.includes("#") && finalGrade.color}}
+										className={`text-md md:text-xl font-bold text-${finalGrade.color}-400`}
+									>
+										Final, {finalGrade.letter} {!isNaN(finalGrade.raw) ? (`(${settings.rounding.percent ? (finalGrade.raw).toFixed(settings.rounding.percentPlaces) : finalGrade.raw}%)`) : ""}
+									</motion.div>}
+										{semesterGrade &&
+									<motion.div
+										layoutId={`semester-${layoutID}`}
+										layout="preserve-aspect"
+										style={{color:semesterGrade.color.includes("#") && semesterGrade.color}}
+										className={`text-md md:text-xl font-bold text-${semesterGrade.color}-400`}
+									>
+										{!settings?.finals?.isSemester && ordinalSuffix(indexX+1)} Semester, {semesterGrade.letter} {!isNaN(semesterGrade.raw) ? (`(${settings.rounding.percent ? (semesterGrade.raw).toFixed(settings.rounding.percentPlaces) : semesterGrade.raw}%)`) : ""}
+									</motion.div>}
+									</div>
 
-												<Link href={`/grades/${layoutID}`} legacyBehavior>
-													<button className="rounded-lg bg-primary-500 px-5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-														View
-													</button>
-												</Link>
-											</div>
-										</div>
-									</motion.div>
+									<Link href={`/grades/${layoutID}`} legacyBehavior>
+										<button className="rounded-lg bg-primary-500 px-5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+											View
+										</button>
+									</Link>
 								</div>
-							)}
-							))})()}
-						</div>
+							</div>
+						</motion.div>
+					</div>
 					)}
+					))})()}
+				</div>
+				)}
 					{view === "table" && (
 						<div className="overflow-x-auto max-w-max -md rounded-lg border border-gray-200 dark:border-gray-700">
 							<table className="text-sm text-left text-gray-500 dark:text-gray-400">
