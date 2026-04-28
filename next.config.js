@@ -18,7 +18,7 @@ const nextConfig = withPwa({
 	env: {
 		NEXT_PUBLIC_BASE_PATH: basePath,
 		NEXT_PUBLIC_GITHUB_REPO: process.env.GITHUB_REPOSITORY || '',
-		NEXT_PUBLIC_API_URL: "https://cloudproxy.gradedurian.workers.dev",
+		NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "https://cloudproxy.gradedurian.workers.dev",
 	},
 });
 
