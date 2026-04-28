@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from "react";
+import React,{useState,useEffect,useRef} from "react";
 import {Modal} from "flowbite-react"
 import { HiOutlineTrash,HiArrowCircleRight,HiArrowCircleLeft, HiArrowCircleDown } from "react-icons/hi";
 import { reCalculateAll,parseGrades,letterGradeColor, reCalculateCourse, toggleSemester, ordinalSuffix, Course} from "../utils/grades";
@@ -21,6 +21,9 @@ interface props{
   finals?:any;
   setFinals?:any;
   isMediumOrLarger:boolean;
+  showCountdown:boolean;
+  setShowCountdown:(v:boolean)=>void;
+  originalGradingScale:any;
 }
 
 
@@ -28,7 +31,7 @@ interface props{
 
 
 
-export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger}:props){
+export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,originalGradingScale}:props){
           const settings= grades?.[0]?.settings
   const course = index==-1 ? {courseID:"default",settings:settings.default,name:"",identifier:"default"} : grades?.[period]?.courses[index];
         const courseSettings=course.settings
@@ -43,8 +46,9 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         const mcps=client?.district=="https://md-mcps-psv.edupoint.com/Service/PXPCommunication.asmx"
         //new stack based view version
         const [viewStack,setViewStack] = useState(["home"])
+        const [pendingShowCountdown, setPendingShowCountdown] = useState(showCountdown)
+        const originalDefault = useRef(structuredClone(settings.default))
         const currentView=viewStack.at(-1)
-        const [showCountdown, setShowCountdown] = useState(typeof window !== 'undefined' ? localStorage.getItem('showCountdown') !== 'false' : true)
 
 
         const animationPropsHome = {
@@ -61,10 +65,11 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
 
 useEffect(()=>{
   if(!showModal) return;
+  originalDefault.current = structuredClone(settings.default)
+  setPendingShowCountdown(showCountdown)
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
   setFinals(course.settings.finals)
-  setShowCountdown(localStorage.getItem('showCountdown') !== 'false')
   setViewStack(["home"])
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,7 +177,7 @@ function deleteSemesterCategory(semesterIndex,categoryIndex){
 
 
 //endpoints
-const endpointUrl="https://studentvuelib.up.railway.app"
+const endpointUrl = process.env.NEXT_PUBLIC_API_URL
 
 async function getSettings(url,userHash){
    const result= await (await fetch(endpointUrl+"/getSettings",
@@ -289,12 +294,13 @@ async function saveNew(){
     }
 
     tempSettings[course.identifier]=newScale //cause fuck ur manual mode
+    ;(tempSettings as any).showCountdown = pendingShowCountdown
+    setShowCountdown(pendingShowCountdown)
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
       const ham=index!=-1 ? tempGrades[period].courses[index].settings : tempSettings.default
       localStorage.removeItem("xmlCache")
-      localStorage.setItem('showCountdown', String(showCountdown))
       setLetterScale(ham.letterScale)
       setRounding(ham.rounding)
       setFinals(ham.finals)
@@ -329,59 +335,45 @@ async function resetAllClasses(){
 type field="finals" | "letter" | "rounding" | "semester"
 
 
-async function showDefaults(field){
+function showDefaults(field){
+  const orig = originalGradingScale || originalDefault.current
   if(index!=-1){
     //@ts-ignore
-    let hoopDreams=initalizeFinals2(grades,{mode:settings.mode,"default":settings.default},course.identifier).finals
- const template={...settings.default,finals:hoopDreams}
+    let hoopDreams=initalizeFinals2(grades,{mode:settings.mode,"default":orig},course.identifier).finals
+    const template={...orig,finals:hoopDreams}
     if(field=="finals"){
       setFinals(template["finals"])
     }
     else if(field=="letter"){
-      setLetterScale(template["letterScale"])
-
+      setLetterScale(template["letterScale"].map(l => [l[0], l[1]] as [string, [number, number]]))
     }
     else if(field=="rounding"){
       setRounding(template["rounding"])
     }
-
     else{
       const temp=structuredClone(finals)
       //@ts-ignore
-      const defSem=initalizeFinals2(grades,{mode:settings.mode,"default":settings.default},course.identifier).finals.semesters
+      const defSem=initalizeFinals2(grades,{mode:settings.mode,"default":orig},course.identifier).finals.semesters
       temp.semesters=defSem
       setFinals(temp)
     }
   }
   else{
-    //template finals
-
-
-    const result=await getSettings(client.district,"pleaseGodLetNobodySomehowMagicallyHashToThisHashOrItBreaks")
-    if(!result.status){
-      createError("Failed to fetch Default Settings")
+    if(field=="letter"){
+      setLetterScale(orig.letterScale.map(l => [l[0], l[1]] as [string, [number, number]]))
     }
-    else{
-      const countyDefault=result.settings.default;
-      if(field=="letter"){
-        setLetterScale(countyDefault["letterScale"])
-      }
-      else if(field=="rounding"){
-        setRounding(countyDefault["rounding"])
-      }
-      else if(field=="finals"){ //this CANNOT happen. and will not happen. wait. yes it can. NOOOOOOO
-        setFinals(templateFinals(settings.mode,grades[0].periods))
-      }
-
-
-
+    else if(field=="rounding"){
+      setRounding(orig.rounding)
     }
-
-
-
+    else if(field=="finals"){
+      setFinals(templateFinals(settings.mode,grades[0].periods))
+    }
+    else if(field=="semester"){
+      const temp=structuredClone(finals)
+      temp.semesters=templateFinals(settings.mode,grades[0].periods).semesters
+      setFinals(temp)
+    }
   }
-
-
 }
 
 
@@ -492,8 +484,8 @@ className="overflow-y-auto"
           <input
             type="checkbox"
             className="sr-only peer"
-            checked={showCountdown}
-            onChange={(e) => setShowCountdown(e.target.checked)}
+            checked={pendingShowCountdown}
+            onChange={(e) => setPendingShowCountdown(e.target.checked)}
           />
           <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
         </label>

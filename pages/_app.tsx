@@ -6,7 +6,7 @@ import { Flowbite, Toast, useTheme } from "flowbite-react";
 import Topbar from "../components/TopBar";
 import SideBar from "../components/SideBar";
 import MobileBar from "../components/MobileBar";
-import { Grades,parseGrades,findCurrentPeriod,getCache} from "../utils/grades";
+import { Grades,parseGrades,findCurrentPeriod,getCache,initalizeFinals2,reCalculateCourse,Cache} from "../utils/grades";
 import Head from "next/head";
 import { HiX } from "react-icons/hi";
 import { AnimateSharedLayout,MotionConfig, motion, useAnimation, useMotionValue, useAnimationFrame, animate } from "framer-motion";
@@ -90,6 +90,8 @@ function MyApp({ Component, pageProps }) {
 	);
 	const [client, setClient] = useState<Awaited<ReturnType<typeof StudentVue.login>>["client"]>(undefined);
 	const [settingsModal,setSettingsModal]=useState<boolean>(false);
+	const [showCountdown,setShowCountdown]=useState<boolean>(true);
+	const [originalGradingScale,setOriginalGradingScale]=useState<any>(null);
 	const [studentInfo, setStudentInfo] = useState(undefined);
 	const [toasts, setToasts] = useState<Toast[]>([]);
 	const [cacheLoading,setCacheLoading]=useState(true)
@@ -133,7 +135,8 @@ function MyApp({ Component, pageProps }) {
 
 	//const apiUrl="http://localhost:3001"
 	//const apiUrl="https://gradedurianproxy1.up.railway.app"
-	const apiUrl="https://cloudproxy.gradedurian.workers.dev"
+	//const apiUrl="https://cloudproxy.gradedurian.workers.dev"
+	const apiUrl = process.env.NEXT_PUBLIC_API_URL
 	//const apiUrl="https://studentvuelibtest.up.railway.app"
 
 
@@ -268,8 +271,39 @@ it would probably be a good idea to show the final grade also on the Home Screen
 				extraData.gradingScale.mode=fetchedClient.district=="https://md-mcps-psv.edupoint.com/Service/PXPCommunication.asmx" ? "mcps" : undefined
 				res.responses[0][0].gradingScale=extraData.gradingScale;
 				
-				setGrades(getCache(res.responses.map(resp=>resp[0])));
-				setMP(findCurrentPeriod(getCache(res.responses.map(resp=>resp[0]))));
+				const freshCache = getCache(res.responses.map(resp=>resp[0]));
+				setOriginalGradingScale(structuredClone(extraData.gradingScale.default));
+				setGrades(freshCache);
+				setMP(findCurrentPeriod(freshCache));
+
+				// Load and apply saved user settings
+				fetch(apiUrl + "/getSettings", {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ url: fetchedClient.district, userHash: fetchedClient.username })
+				}).then(r => r.json()).then(result => {
+					if (!result.status) return;
+					const saved = result.settings;
+					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
+					const cache: Cache = structuredClone(freshCache);
+					for (const key in saved) {
+						if (key === "default" || key === "mode" || key === "showCountdown") continue;
+						for (const prop in saved[key]) {
+							if (saved[key][prop] === false) saved[key][prop] = saved.default[prop];
+						}
+						saved[key] = initalizeFinals2(cache, saved, key);
+					}
+					for (const grade of cache) {
+						grade.settings = saved;
+						for (const ncourse of grade.courses) {
+							ncourse.settings = saved[ncourse.identifier]
+								? saved[ncourse.identifier]
+								: initalizeFinals2(cache, saved, ncourse.identifier);
+							reCalculateCourse(ncourse);
+						}
+					}
+					setGrades(cache);
+				}).catch(() => {});
 
 				fetchedClient.schedule().then(([sched]) => {
 					(fetchedClient as any).loadedSchedule = sched;
@@ -604,6 +638,9 @@ const logout = async () => {
 								setSchoolIndex={setSchoolIndex}
 								guestLogin={guestLogin}
 								donation={donation}
+								showCountdown={showCountdown}
+								setShowCountdown={setShowCountdown}
+								originalGradingScale={originalGradingScale}
 
 							/>
 						</AnimateSharedLayout>
@@ -653,6 +690,9 @@ const logout = async () => {
 										setSchoolIndex={setSchoolIndex}
 							 			guestLogin={guestLogin}
 										donation={donation}
+											showCountdown={showCountdown}
+											setShowCountdown={setShowCountdown}
+								originalGradingScale={originalGradingScale}
 									/>
 								</AnimateSharedLayout>
 								</MotionConfig>
@@ -694,6 +734,9 @@ const logout = async () => {
 										setSchoolIndex={setSchoolIndex}
 										guestLogin={guestLogin}
 										donation={donation}
+											showCountdown={showCountdown}
+											setShowCountdown={setShowCountdown}
+								originalGradingScale={originalGradingScale}
 									/>
 								</AnimateSharedLayout>
 								</MotionConfig>

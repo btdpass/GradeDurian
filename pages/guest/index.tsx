@@ -43,6 +43,9 @@ interface GradesProps {
     schoolIndex:number,
     setSchoolIndex:any
 	guestLogin:()=>void
+	showCountdown:boolean;
+	setShowCountdown:(v:boolean)=>void;
+	originalGradingScale:any;
 }
 
 export default function Grades({
@@ -54,7 +57,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,guestLogin
+	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,guestLogin,showCountdown,setShowCountdown,originalGradingScale
 }: GradesProps) {
 	const router = useRouter();
 	const [loading,setLoading]=useState(!Boolean(grades))
@@ -249,7 +252,9 @@ export default function Grades({
 				mp={mp}
 				createError={createError}
 				isMediumOrLarger={isMediumOrLarger}
-
+				showCountdown={showCountdown}
+				setShowCountdown={setShowCountdown}
+				originalGradingScale={originalGradingScale}
 			/></ClientOnly>
 
 							{!loading && schoolsList && <div className="flex justify-between flex-shrink w-full pb-3 md:-mt-9">

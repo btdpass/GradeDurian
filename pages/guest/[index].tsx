@@ -56,6 +56,9 @@ interface GradesProps {
 	schoolsList:SchoolsListType[]
 	schoolIndex:number
 	guestLogin:()=>void
+	showCountdown:boolean;
+	setShowCountdown:(v:boolean)=>void;
+	originalGradingScale:any;
 }
 
 
@@ -85,7 +88,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,markingPeriod,setMarkingPeriod,modalBg,setModalBg,settingsModal,setSettingsModal,schoolsList,schoolIndex,guestLogin
+	width,markingPeriod,setMarkingPeriod,modalBg,setModalBg,settingsModal,setSettingsModal,schoolsList,schoolIndex,guestLogin,showCountdown,setShowCountdown,originalGradingScale
 	
 }: GradesProps) {
 	const router = useRouter();
@@ -397,6 +400,9 @@ export default function Grades({
 				showModal={settingsModal}
 				setShowModal={(bool)=>{setSettingsModal(bool);setModalBg(bool)}}
 				isMediumOrLarger={isMediumOrLarger}
+				showCountdown={showCountdown}
+				setShowCountdown={setShowCountdown}
+				originalGradingScale={originalGradingScale}
 			/></ClientOnly>
 
 			<ClientOnly><OptimizationModal
