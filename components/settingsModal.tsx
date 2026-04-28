@@ -321,7 +321,7 @@ async function saveNew(){
 
 
 async function resetAllClasses(){
-  const tempSettings:Settings={mode:settings.mode,"default":settings.default} as Settings
+  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown}
   const tempGrades=await saveAndApply(tempSettings)
   if(tempGrades){
   setShowModal(false)}
