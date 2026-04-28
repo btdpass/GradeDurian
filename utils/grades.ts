@@ -988,16 +988,17 @@ const addAssignment = (course: Course,uuid=crypto.randomUUID()): Course => {
 
 
 const calculateGPA = (grades: Grades): Grades => {
+	const valid = grades.courses.filter(c => !isNaN(c.grade.raw));
 	grades.gpa =
-		grades.courses.reduce(
-			(a, b) => a + letterGPA(letterGrade(b.grade.raw,b.settings), false),
+		valid.reduce(
+			(a, b) => a + letterGPA(letterGrade(b.grade.raw, b.settings), false),
 			0
-		) / grades.courses.length;
+		) / (valid.length || 1);
 	grades.wgpa =
-		grades.courses.reduce(
-			(a, b) => a + letterGPA(letterGrade(b.grade.raw,b.settings), b.weighted),
+		valid.reduce(
+			(a, b) => a + letterGPA(letterGrade(b.grade.raw, b.settings), b.weighted),
 			0
-		) / grades.courses.length;
+		) / (valid.length || 1);
 
 	return { ...grades };
 };

@@ -100,7 +100,7 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date();
+			const now = new Date(); // now.setHours(13, 39); // TEST: 12:30 PM during AP Bio (12:05–1:40)
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
@@ -116,7 +116,7 @@ export default function Grades({
 			const m = Math.floor(diff / 60000);
 			const s = Math.floor((diff % 60000) / 1000);
 			const p = Array.isArray(active.period) ? active.period[0] : active.period;
-			setCountdown({ period: parseInt(p), label: `${m}m ${s}s left` });
+			setCountdown({ period: parseInt(p), label: m > 0 ? `${m}m ${s}s left` : `${s}s left` });
 		}
 		tick();
 		const id = setInterval(tick, 1000);
@@ -411,8 +411,7 @@ export default function Grades({
 						<button
 							type="button"
 							onClick={() => setGpaModal(true)}
-							style={{alignSelf:"center"}}
-							className="bg-primary-500 border border-primary-500 focus:outline-none max-h-min px-2.5 py-2 hover:bg-primary-600 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg dark:bg-primary-600 text-white dark:hover:bg-primary-700 dark:focus:ring-primary-400"
+							className="bg-primary-500 border border-primary-500 focus:outline-none hover:bg-primary-600 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm p-2.5 dark:bg-primary-600 text-white dark:hover:bg-primary-700 dark:focus:ring-primary-400"
 						>
 							<TbMathSymbols size={"1.3rem"} />
 						</button>
