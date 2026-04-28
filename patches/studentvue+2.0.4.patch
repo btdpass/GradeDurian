@@ -1,15 +1,12 @@
 diff --git a/node_modules/studentvue/.DS_Store b/node_modules/studentvue/.DS_Store
 new file mode 100644
-index 0000000..d71f71f
-Binary files /dev/null and b/node_modules/studentvue/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/studentvue/lib/.DS_Store b/node_modules/studentvue/lib/.DS_Store
 new file mode 100644
-index 0000000..62a2661
-Binary files /dev/null and b/node_modules/studentvue/lib/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/studentvue/lib/StudentVue/.DS_Store b/node_modules/studentvue/lib/StudentVue/.DS_Store
 new file mode 100644
-index 0000000..6f712b1
-Binary files /dev/null and b/node_modules/studentvue/lib/StudentVue/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/studentvue/lib/StudentVue/Client/Client.js b/node_modules/studentvue/lib/StudentVue/Client/Client.js
 index a038a16..91be620 100644
 --- a/node_modules/studentvue/lib/StudentVue/Client/Client.js
@@ -47,9 +44,18 @@ index 00b5314..0e871d7 100644
        if (districtUrl.length === 0) {
          return rej(new _RequestException.default({
 diff --git a/node_modules/studentvue/lib/utils/soap/Client/Client.js b/node_modules/studentvue/lib/utils/soap/Client/Client.js
-index 3458edc..f5ea8d8 100644
+index 3458edc..295a58f 100644
 --- a/node_modules/studentvue/lib/utils/soap/Client/Client.js
 +++ b/node_modules/studentvue/lib/utils/soap/Client/Client.js
+@@ -30,7 +30,7 @@
+       return this.__password__;
+     }
+     get proxyUrl() {
+-      return Client.url;
++      return this.url;
+     }
+     get credentials() {
+       return {
 @@ -40,13 +40,13 @@
          encrypted: this.encrypted
        };
@@ -99,6 +105,15 @@ index 3458edc..f5ea8d8 100644
            });
            const obj = parserTwo.parse(preparse(result['soap:Envelope']['soap:Body'].ProcessWebServiceRequestResponse.ProcessWebServiceRequestResult));
            if (defaultOptions.validateErrors && typeof obj === 'object' && 'RT_ERROR' in obj) {
+@@ -239,7 +241,7 @@
+         paramStr: {},
+         ...options
+       };
+-      const expressUrl = Client.url;
++      const expressUrl = this.url;
+       return new Promise((res, reject) => {
+         const builder = new _fastXmlParser.XMLBuilder({
+           ignoreAttributes: false,
 @@ -281,7 +283,7 @@
            } else {
              var data = realResponse.response;

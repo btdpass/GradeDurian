@@ -133,7 +133,8 @@ function MyApp({ Component, pageProps }) {
 
 	//const apiUrl="http://localhost:3001"
 	//const apiUrl="https://gradedurianproxy1.up.railway.app"
-	const apiUrl="https://cloudproxy.gradedurian.workers.dev"
+	//const apiUrl="https://cloudproxy.gradedurian.workers.dev"
+	const apiUrl=process.env.NEXT_PUBLIC_API_URL
 	//const apiUrl="https://studentvuelibtest.up.railway.app"
 
 
