@@ -87,6 +87,7 @@ type Settings = {
 interface Course {
 	name: string;
 	period: number;
+	periods: number[];
 	courseID:string;
 	layoutID: number;
 	room: string;
@@ -666,7 +667,7 @@ const parseGrades = (grades: Gradebook,override?:Settings): Grades => {
 			) / grades.courses.length,
 
 
-			courses: grades.courses.map(({ title, period, room, staff, marks,courseID }, i) => {
+			courses: grades.courses.map(({ title, period, room, staff, marks,courseID, periodRaw }: any, i) => {
 				if(courseID.at(-1)=="X"){courseID=courseID.substring(0,courseID.length-1)}
 				let identifier= false ? (ReplaceUnderscores(stripParens(title))+period+staff.name) : courseID.substring(0,courseID.length-1)
 				const courseSettings=settings[identifier] ? settings[identifier] : structuredClone(settings.default)
@@ -676,9 +677,12 @@ const parseGrades = (grades: Gradebook,override?:Settings): Grades => {
 			
 	
 			
+			const parsedPeriods = periodRaw ? (String(periodRaw).match(/\d+/g)?.map(Number) ?? []) : [];
+			const effectivePeriod = period || (parsedPeriods[0] ?? i + 1);
 			return({
 			name: ReplaceUnderscores(stripParens(title)),
-			period: period ? period : i + 1,
+			period: effectivePeriod,
+			periods: parsedPeriods.length ? parsedPeriods : [effectivePeriod],
 			layoutID:null,
 			courseID:courseID,
 			room: room,

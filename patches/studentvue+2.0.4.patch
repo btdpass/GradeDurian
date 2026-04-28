@@ -11,10 +11,18 @@ new file mode 100644
 index 0000000..6f712b1
 Binary files /dev/null and b/node_modules/studentvue/lib/StudentVue/.DS_Store differ
 diff --git a/node_modules/studentvue/lib/StudentVue/Client/Client.js b/node_modules/studentvue/lib/StudentVue/Client/Client.js
-index a038a16..6bee7fb 100644
+index a038a16..91be620 100644
 --- a/node_modules/studentvue/lib/StudentVue/Client/Client.js
 +++ b/node_modules/studentvue/lib/StudentVue/Client/Client.js
-@@ -614,10 +614,8 @@
+@@ -478,6 +478,7 @@
+                 return {
+                   courseID: course['@_CourseID']?.[0] ?? "",
+                   period: Number(course['@_Period'][0]),
++                  periodRaw: course['@_Period']?.[0] ?? "",
+                   title: _he.default.decode(course['@_Title'][0]),
+                   room: course['@_Room'][0],
+                   staff: {
+@@ -614,10 +615,8 @@
            });
          };
          if (fresh || reportingPeriodIndex == null) {

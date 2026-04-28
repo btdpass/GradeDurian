@@ -106,7 +106,7 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
-	const [gated, setGated] = useState(true); // url masking
+	const [gated, setGated] = useState(false); // url masking
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -270,9 +270,10 @@ it would probably be a good idea to show the final grade also on the Home Screen
 				setGrades(getCache(res.responses.map(resp=>resp[0])));
 				setMP(findCurrentPeriod(getCache(res.responses.map(resp=>resp[0]))));
 
+				fetchedClient.schedule().then(([sched]) => {
+					(fetchedClient as any).loadedSchedule = sched;
+				}).catch(() => {});
 
-
-	
 				if(!gated&&(router.pathname=="/"||router.pathname=="/login")){router.push("/grades")}
 				
 				await setLoading(false);

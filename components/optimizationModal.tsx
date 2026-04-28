@@ -254,7 +254,7 @@ TODO:
             }else{
 
                     //virtual course
-                    temp[cat.mp].courses[99+i]={grade:newGrade,name:"",period:NaN,courseID:course.courseID,layoutID:NaN,room:"",weighted:course.weighted,identifier:course.identifier,settings:course.settings,teacher:{name:"",email:""},categories:course.categories,assignments:[]}
+                    temp[cat.mp].courses[99+i]={grade:newGrade,name:"",period:NaN,periods:[NaN],courseID:course.courseID,layoutID:NaN,room:"",weighted:course.weighted,identifier:course.identifier,settings:course.settings,teacher:{name:"",email:""},categories:course.categories,assignments:[]}
                     
                     //insert virtual course into copy's runtime settings
                     const dex=course.settings.finals.categories.findIndex(cat=>(isNaN(cat.courseIndex)&&cat.mp==cat.mp&&cat.type==cat.type))
@@ -559,7 +559,7 @@ TODO:
                                 }else{
 
                                     //virtual course
-                                    temp[category.mp].courses[99+i]={grade:newGrade,name:"",period:NaN,courseID:course.courseID,layoutID:NaN,room:"",weighted:course.weighted,identifier:course.identifier,settings:course.settings,teacher:{name:"",email:""},categories:course.categories,assignments:[]}
+                                    temp[category.mp].courses[99+i]={grade:newGrade,name:"",period:NaN,periods:[NaN],courseID:course.courseID,layoutID:NaN,room:"",weighted:course.weighted,identifier:course.identifier,settings:course.settings,teacher:{name:"",email:""},categories:course.categories,assignments:[]}
                                     
                                     //insert virtual course into copy's runtime settings
                                     const dex=course.settings.finals.categories.findIndex(cat=>(isNaN(cat.courseIndex)&&cat.mp==category.mp&&category.type==cat.type))

@@ -24,8 +24,13 @@ import { HiArrowCircleLeft, HiArrowCircleRight } from "react-icons/hi";
 import {grades as sample}	 from "../../utils/sample"
 import DonationModal from "../../components/DonationModal";
 
+type ClientWithExtras = Awaited<ReturnType<typeof StudentVue.login>>["client"] & {
+	guest?: boolean;
+	loadedSchedule?: any;
+};
+
 interface GradesProps {
-	client: Awaited<ReturnType<typeof StudentVue.login>>["client"];
+	client: ClientWithExtras;
 	grades: Cache;
 	setGrades: (grades: Cache) => void;
 	mp: number;
@@ -44,6 +49,7 @@ interface GradesProps {
     setSchoolIndex:any,
 	donation:false | {userhash:string,date:number,type:string}
 }
+
 
 export default function Grades({
 	client,
@@ -68,15 +74,14 @@ export default function Grades({
 	const [scheduleLoaded, setScheduleLoaded] = useState(false);
 
 	useEffect(() => {
-		if (client && !client.guest) {
-			if (client.loadedSchedule) {
+		if (!client || client.guest) return;
+		if (client.loadedSchedule?.today) {
+			setScheduleLoaded(true);
+		} else {
+			client.schedule().then(([res]) => {
+				client.loadedSchedule = res;
 				setScheduleLoaded(true);
-			} else {
-				client.schedule().then(([res]) => {
-					client.loadedSchedule = res;
-					setScheduleLoaded(true);
-				}).catch(() => {});
-			}
+			}).catch(() => {});
 		}
 	}, [client]);
 
@@ -102,7 +107,11 @@ export default function Grades({
 				return now >= s && now <= e;
 			});
 			if (!active) { setCountdown(null); return; }
-			const end = parseTime(Array.isArray(active.end) ? active.end[0] : active.end);
+			const getName = (c: any) => Array.isArray(c.name) ? c.name[0] : c.name;
+			const getEnd = (c: any) => parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
+			const end = all
+				.filter(c => getName(c) === getName(active))
+				.reduce((latest, c) => { const e = getEnd(c); return e > latest ? e : latest; }, getEnd(active));
 			const diff = Math.max(0, end.getTime() - now.getTime());
 			const m = Math.floor(diff / 60000);
 			const s = Math.floor((diff % 60000) / 1000);
@@ -117,6 +126,12 @@ export default function Grades({
 	//@ts-ignore
 	const mcps=client?.district=="https://md-mcps-psv.edupoint.com/Service/PXPCommunication.asmx"
 	const isMediumOrLarger = width >= 768;
+
+	const formatPeriods = (ps: number[]) =>
+		ps.length > 1 ? `${ps[0]} & ${ps[ps.length - 1]}` : String(ps[0]);
+	const currentMP = grades ? findCurrentPeriod(grades) : -1;
+	const countdownMatchesCourse = (coursePeriods: number[]) =>
+		!!countdown && mp === currentMP && coursePeriods.includes(countdown.period);
 
 	useEffect(() => {
 		if (localStorage.getItem("defaultView") !== null) {
@@ -151,7 +166,6 @@ export default function Grades({
 	}, [client]);
 
 	function update(p: number,getFresh=false){
-		//@ts-expect-error	
 		if(client.guest){
 			const m = structuredClone(grades)
 			m[mp] = sample[mp]
@@ -420,7 +434,7 @@ export default function Grades({
 							//style={{ gridTemplateColumns: "repeat(auto-fit, 384px)" }}
 						>
 							{(()=>{
-								return (grades?.[mp]?.courses.map(({ name, period, grade, teacher, settings,layoutID}, i) => {	
+								return (grades?.[mp]?.courses.map(({ name, period, periods, grade, teacher, settings,layoutID}, i) => {
 								var semesterGrade
 								if(!settings?.finals?.isSemester){
 								var finalGrade=settings?.finals?.show ? calcFinal(settings.finals.categories,grades) : undefined
@@ -446,17 +460,12 @@ export default function Grades({
 										layoutId={`card-${layoutID}`}
 										className="relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700"
 									>
-										{countdown?.period === period && localStorage.getItem('showCountdown') !== 'false' && (
-											<span className="absolute top-3 right-3 text-xs font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-full px-2 py-0.5">
-												{countdown.label}
-											</span>
-										)}
 										<div className="">
 											<Link href={`/grades/${layoutID}`} legacyBehavior>
 												<div className="hover:cursor-pointer">
 													<h5 className="md:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
 														<p className="font-bold">
-															{period} -{" "}
+															{formatPeriods(periods)} -{" "}
 															<motion.span
 																layout
 																layoutId={`name-${layoutID}`}
@@ -469,9 +478,14 @@ export default function Grades({
 													<motion.p
 														layoutId={`teacher-${layoutID}`}
 														layout
-														className="text-md tracking-tight text-gray-900 dark:text-white"
+														className="text-md tracking-tight text-gray-900 dark:text-white flex items-center gap-2"
 													>
 														{teacher.name}
+														{countdownMatchesCourse(periods) && localStorage.getItem('showCountdown') !== 'false' && (
+															<span className="text-xs font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-full px-2 py-0.5">
+																{countdown.label}
+															</span>
+														)}
 													</motion.p>
 												</div>
 											</Link>
@@ -554,7 +568,7 @@ export default function Grades({
 								</thead>
 								<tbody>
 									{grades?.[mp]?.courses.map(
-										({ name, period, grade, teacher,settings }, i) => {
+										({ name, period, periods, grade, teacher,settings }, i) => {
 											var semesterGrade
 											if(!settings?.finals?.isSemester){
 											var finalGrade=settings?.finals?.show ? calcFinal(settings.finals.categories,grades) : undefined
@@ -588,7 +602,7 @@ export default function Grades({
 													scope="row"
 													className="py-4 pl-6 font-medium text-gray-900 whitespace-nowrap dark:text-white"
 												>
-													{period}
+													{formatPeriods(periods)}
 												</td>
 												<td className="py-4 px-6">
 													<Link href={`/grades/${i}`} legacyBehavior>
