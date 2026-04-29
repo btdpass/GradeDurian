@@ -117,7 +117,8 @@ export default function FAQ({width,createError,donation,client}:any) {
 						<ul className="list-disc pl-6 space-y-1">
 							<li><strong>Your password is never stored.</strong> When you log in, your credentials are used only to fetch your data and are never saved anywhere on our end.</li>
 							<li><strong>Your grades and academic records are never saved.</strong> They are fetched directly from your school&apos;s system, shown to you, and that&apos;s it. Nothing is kept on our servers.</li>
-							<li>Your preferences like dark mode and your login info (if you choose to stay signed in) are saved <strong>only on your device</strong> in your browser. Nothing is sent to or stored on Grade Durian&apos;s servers.</li>
+							<li><strong>Some preferences are stored securely on our servers.</strong> Settings like custom grade scales and colors are saved to a secure database so they sync across devices.</li>
+							<li><strong>Other preferences stay on your device.</strong> Dark mode and choosing to stay signed in are stored locally in your browser and never sent to our servers.</li>
 						</ul>
 						<p>
 							Want to know more?{" "}
