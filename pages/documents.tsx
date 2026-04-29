@@ -118,7 +118,7 @@ export default function Documents({ client,createError }: DocumentsProps) {
 					<Spinner size="xl" color="warning" />
 				</div>
 			) : (
-				<div className="overflow-x-auto max-w-max shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
+				<div className="overflow-x-auto max-w-max shadow-md rounded-lg border border-gray-200 dark:border-gray-700 [transition:none]">
 					<table className="text-sm text-left text-gray-500 dark:text-gray-400">
 						<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 							<tr>
