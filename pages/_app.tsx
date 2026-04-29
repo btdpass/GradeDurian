@@ -376,12 +376,18 @@ async function checkDonations(){
 	}
 }
 
+	// useEffect(()=>{
+	// 	//@ts-expect-error
+	// 	if(!donation&&client&&!client?.guest){
+	// 		checkDonations()
+	// }
+	// })
 	useEffect(()=>{
 		//@ts-expect-error
 		if(!donation&&client&&!client?.guest){
 			checkDonations()
 	}
-	})
+	},[client])
 
 
  
