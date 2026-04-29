@@ -49,6 +49,13 @@ module.exports = {
 		{
 			pattern: /bg-gray-(50|100|700|800|900)/,
 		},
+		'bg-primary-50',
+		'bg-primary-100',
+		'dark:bg-yellow-900/20',
+		'dark:bg-yellow-700/20',
+		'dark:bg-yellow-500/20',
+		'border-primary-300',
+		'dark:border-primary-500/50',
 	],
 	plugins: [require("flowbite/plugin")],
 };

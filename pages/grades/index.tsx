@@ -103,7 +103,7 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date(); //now.setHours(13); // TEST: 12:30 PM during AP Bio (12:05–1:40)
+			const now = new Date(); //now.setHours(8); // TEST: 12:30 PM during AP Bio (12:05–1:40)
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
@@ -475,9 +475,9 @@ export default function Grades({
 									<motion.div
 										layout="preserve-aspect"
 										layoutId={`card-${layoutID}`}
-											whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
+										whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
 										transition={{ duration: 0.12, ease: "easeOut" }}
-										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer ${countdownMatchesCourse(periods) && showCountdown ? 'bg-yellow-50 border border-yellow-200 dark:bg-yellow-400/10 dark:border-yellow-400/30' : 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700'}`}
+										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer ${countdownMatchesCourse(periods) && showCountdown ? 'bg-primary-50 border border-primary-300 dark:bg-yellow-500/20 dark:border-primary-500/50' : 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700'}`}
 									>
 										<div className="">
 											{/* <Link href={`/grades/${layoutID}`} legacyBehavior> */}
