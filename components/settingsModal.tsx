@@ -448,7 +448,7 @@ className="dark:bg-gray-700"
 
 >
 
-<p className="text-2xl">Grade Calculation Settings <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
+<p className="text-2xl">Grade Settings <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
 {index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>}
 </Modal.Header>
 
