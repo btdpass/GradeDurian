@@ -479,7 +479,7 @@ className="overflow-y-auto"
         style={{borderWidth:1}}
         className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-2 flex justify-between items-center"
       >
-        <p className="text-lg font-semibold dark:text-white">Class Countdown</p>
+        <p className="text-lg font-semibold dark:text-white">Current Class</p>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"

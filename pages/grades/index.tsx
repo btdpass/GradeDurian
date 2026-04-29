@@ -103,7 +103,7 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date(); // now.setHours(13, 45); // TEST: 12:30 PM during AP Bio (12:05–1:40)
+			const now = new Date(); //now.setHours(13); // TEST: 12:30 PM during AP Bio (12:05–1:40)
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
@@ -471,14 +471,17 @@ export default function Grades({
 				
 							return(
 								<div className="mx-2 flex justify-center w-full md:w-96" key={i}>
+									<Link href={`/grades/${layoutID}`} legacyBehavior>
 									<motion.div
 										layout="preserve-aspect"
 										layoutId={`card-${layoutID}`}
-										className="relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700"
+											whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
+										transition={{ duration: 0.12, ease: "easeOut" }}
+										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer ${countdownMatchesCourse(periods) && showCountdown ? 'bg-yellow-50 border border-yellow-200 dark:bg-yellow-400/10 dark:border-yellow-400/30' : 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700'}`}
 									>
 										<div className="">
-											<Link href={`/grades/${layoutID}`} legacyBehavior>
-												<div className="hover:cursor-pointer">
+											{/* <Link href={`/grades/${layoutID}`} legacyBehavior> */}
+											<div className="hover:cursor-pointer">
 													<h5 className="md:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
 														<p className="font-bold">
 															{formatPeriods(periods)} -{" "}
@@ -504,7 +507,7 @@ export default function Grades({
 														)}
 													</motion.p>
 												</div>
-											</Link>
+											{/* </Link> */}
 										</div>
 							<div className="">
 								<div className="flex items-end justify-between">
@@ -548,6 +551,7 @@ export default function Grades({
 								</div>
 							</div>
 						</motion.div>
+									</Link>
 					</div>
 					)}
 					))})()}
