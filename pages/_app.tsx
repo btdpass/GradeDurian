@@ -108,7 +108,7 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
-	const [gated, setGated] = useState(false); // url masking
+	const [gated, setGated] = useState(true); // url masking
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
