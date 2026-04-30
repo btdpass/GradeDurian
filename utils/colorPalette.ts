@@ -119,11 +119,17 @@ export async function recolorImage(src: string, targetHex: string): Promise<stri
 }
 
 export function updateFavicon(dataUrl: string) {
-    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
-    if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-    }
-    link.href = dataUrl;
+    const setFavicon = (doc: Document) => {
+        let link = doc.querySelector<HTMLLinkElement>("link[rel~='icon']");
+        if (!link) {
+            link = doc.createElement('link');
+            link.rel = 'icon';
+            doc.head.appendChild(link);
+        }
+        link.href = dataUrl;
+    };
+    setFavicon(document);
+    try {
+        if (window.parent !== window) setFavicon(window.parent.document);
+    } catch {}
 }

@@ -110,35 +110,41 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
-	const [gated, setGated] = useState(false); // url masking
+	const [gated, setGated] = useState(true); // url masking
 
 	const applyColor = (hex: string) => {
 		applyPalette(hex);
 		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
-		recolorImage(`${base}/assets/logo.png`, hex).then(url => {
-			setLogoSrc(url);
-			updateFavicon(url);
-		});
+		if (hex === '#f43f5e') {
+			setLogoSrc(`${base}/assets/logo1.png`);
+			updateFavicon(`${base}/favicon1.ico`);
+		} else {
+			recolorImage(`${base}/assets/logo.png`, hex).then(url => {
+				setLogoSrc(url);
+				updateFavicon(url);
+			});
+		}
 	};
 
 	useEffect(() => {
 		if (router.pathname === '/' || router.pathname === '/login') {
 			applyPalette(DEFAULT_PRIMARY);
 			const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
-			recolorImage(`${base}/assets/logo.png`, DEFAULT_PRIMARY).then(url => {
-				setLogoSrc(url);
-			});
+			recolorImage(`${base}/assets/logo.png`, DEFAULT_PRIMARY).then(url => setLogoSrc(url));
+			updateFavicon(`${base}/favicon.ico`);
 			return;
 		}
+		if (gated) return;
 		const cached = localStorage.getItem('primaryColor');
 		if (cached) applyColor(cached);
-	}, [router.pathname]);
+	}, [router.pathname, gated]);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 		if (isMobile || window !== window.top || window.location.hostname === 'localhost') {
 			setGated(false);
 		}
+
 	}, []);
 
 	const openInFrame = () => {
@@ -529,7 +535,7 @@ useEffect(()=>{
 			refURL=cookieDistrict.parentVueUrl;
 
 		}else{if(districtURL==undefined){setDistrictURL("https://md-mcps-psv.edupoint.com")}}
-		if(client===undefined&&Cookies.get("username")!=undefined&&Cookies.get("password")!=undefined&&districtURL!==undefined){
+		if(!gated&&client===undefined&&Cookies.get("username")!=undefined&&Cookies.get("password")!=undefined&&districtURL!==undefined){
 			doLogin();
 			
 		}else{if(!gated&&client===undefined&&(!noShowNav.includes(router.pathname)||router.pathname=="/")&&!refURL&&!guest){router.push("/login")}}
