@@ -106,13 +106,15 @@ export async function recolorImage(src: string, targetHex: string): Promise<stri
             ctx.drawImage(img, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
-            const [targetH, targetS] = hexToHsl(targetHex);
+            const [targetH, targetS, targetL] = hexToHsl(targetHex);
+            const ORIGINAL_L = 59; // lightness of DEFAULT_PRIMARY (#e9bb42)
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i] / 255, g = data[i+1] / 255, b = data[i+2] / 255;
                 const [h, s, l] = hexToHsl(`#${[r,g,b].map(v => Math.round(v*255).toString(16).padStart(2,'0')).join('')}`);
                 const hueDiff = Math.abs(h - ORIGINAL_HUE);
                 if (s > 15 && (hueDiff < 40 || hueDiff > 320)) {
-                    const recolored = hslToHex(targetH, Math.min(100, s * (targetS / 79)), l);
+                    const newL = Math.min(98, Math.max(5, targetL * (l / ORIGINAL_L)));
+                    const recolored = hslToHex(targetH, Math.min(100, s * (targetS / 79)), newL);
                     data[i]   = parseInt(recolored.slice(1,3), 16);
                     data[i+1] = parseInt(recolored.slice(3,5), 16);
                     data[i+2] = parseInt(recolored.slice(5,7), 16);
