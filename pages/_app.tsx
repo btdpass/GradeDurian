@@ -112,9 +112,13 @@ function MyApp({ Component, pageProps }) {
 	const [gated, setGated] = useState(true); // url masking
 
 	useEffect(() => {
+		if (router.pathname === '/' || router.pathname === '/login') {
+			applyPalette(DEFAULT_PRIMARY);
+			return;
+		}
 		const cached = localStorage.getItem('primaryColor');
 		if (cached) applyPalette(cached);
-	}, []);
+	}, [router.pathname]);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
