@@ -479,7 +479,7 @@ export default function Grades({
 										layoutId={`card-${layoutID}`}
 										whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
 										transition={{ duration: 0.12, ease: "easeOut" }}
-										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer ${countdownMatchesCourse(periods) && showCountdown ? 'bg-primary-50 border border-primary-300 dark:bg-yellow-500/20 dark:border-primary-500/50' : 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700'}`}
+										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer ${countdownMatchesCourse(periods) && showCountdown ? 'bg-primary-500/10 border border-primary-300 dark:bg-primary-500/10 dark:border-primary-500/50' : 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700'}`}
 									>
 										<div className="">
 											{/* <Link href={`/grades/${layoutID}`} legacyBehavior> */}

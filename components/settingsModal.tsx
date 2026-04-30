@@ -1488,8 +1488,8 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         return (
           <div className="flex flex-col gap-3">
             {[
-              { label: 'Grade Durian', color: DEFAULT_PRIMARY, isDefault: true },
-              { label: 'Grade Melon', color: '#f43f5e' },
+              { label: 'Durian', color: DEFAULT_PRIMARY, isDefault: true },
+              { label: 'Melon', color: '#f43f5e' },
             ].map(({ label, color, isDefault }: any) => (
               <button key={color} onClick={() => { setPendingPrimaryColor(color); applyPalette(color); }} className={rowClass(selected(color))}>
                 <p className="dark:text-white font-semibold">{label}{isDefault && <span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">Default</span>}</p>

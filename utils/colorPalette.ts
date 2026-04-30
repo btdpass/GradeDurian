@@ -49,13 +49,20 @@ const SHADE_CONFIG = [
     { shade: 900, l: 23, sFactor: 1.0 },
 ];
 
+// Lightness ratios relative to shade-500 (l=59 reference)
+const L_RATIOS: Record<number, number> = {
+    50: 97/59, 100: 92/59, 200: 82/59, 300: 70/59,
+    400: 62/59, 500: 1, 600: 47/59, 700: 37/59, 800: 29/59, 900: 23/59,
+};
+
 export function generatePalette(hex: string): Record<number, string> {
     const [h, s, l] = hexToHsl(hex);
     const palette: Record<number, string> = {};
-    for (const { shade, l: targetL, sFactor } of SHADE_CONFIG) {
-        const finalL = targetL ?? l;
-        const finalS = Math.min(100, s * sFactor);
-        palette[shade] = hslToHex(h, finalS, finalL);
+    for (const [shadeStr, ratio] of Object.entries(L_RATIOS)) {
+        const shade = Number(shadeStr);
+        const finalL = Math.min(98, Math.max(5, l * ratio));
+        const sFactor = SHADE_CONFIG.find(c => c.shade === shade)?.sFactor ?? 1;
+        palette[shade] = hslToHex(h, Math.min(100, s * sFactor), finalL);
     }
     return palette;
 }
