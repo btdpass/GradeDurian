@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Spinner } from "flowbite-react";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -50,6 +50,10 @@ interface GradesProps {
 	donation:false | {userhash:string,date:number,type:string}
 	showCountdown:boolean;
 	setShowCountdown:(v:boolean)=>void;
+	highlightColor:string|null;
+	setHighlightColor:(v:string|null)=>void;
+	siteTitle:string;
+	setSiteTitle:(v:string)=>void;
 	originalGradingScale:any;
 	onColorPreview?:(hex:string)=>void;
 }
@@ -64,7 +68,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,donation,showCountdown,setShowCountdown,originalGradingScale,onColorPreview
+	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,donation,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,originalGradingScale,onColorPreview
 }: GradesProps) {
 	const router = useRouter();
 	const [loading,setLoading]=useState(!Boolean(grades))
@@ -74,6 +78,7 @@ export default function Grades({
 	const [gpaModal, setGpaModal] = useState(false);
 	const view = (router.query.view as string) || defaultView;
 	const [countdown, setCountdown] = useState<{period: number, label: string, ms: number} | null>(null);
+	const [countdownTick, setCountdownTick] = useState<{label: string, ms: number} | null>(null);
 
 	const [scheduleLoaded, setScheduleLoaded] = useState(false);
 
@@ -104,7 +109,7 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date(); //now.setHours(8); // TEST
+			const now = new Date(); // now.setHours(9); // TEST
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
@@ -121,13 +126,15 @@ export default function Grades({
 			const getName = (c: any) => Array.isArray(c.name) ? c.name[0] : c.name;
 			const getEnd = (c: any) => parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
 
-			if (!active) { setCountdown(null); return; }
+			if (!active) { setCountdown(null); setCountdownTick(null); return; }
 			const end = all
 				.filter(c => getName(c) === getName(active))
 				.reduce((latest, c) => { const e = getEnd(c); return e > latest ? e : latest; }, getEnd(active));
 			const diff = Math.max(0, end.getTime() - now.getTime());
 			const p = Array.isArray(active.period) ? active.period[0] : active.period;
-			setCountdown({ period: parseInt(p), label: `${fmtDiff(diff)}`, ms: diff });
+			const period = parseInt(p);
+			setCountdown(prev => prev?.period === period ? prev : { period, label: `${fmtDiff(diff)}`, ms: diff });
+			setCountdownTick({ label: `${fmtDiff(diff)}`, ms: diff });
 		}
 		tick();
 		const id = setInterval(tick, 1000);
@@ -391,6 +398,10 @@ export default function Grades({
 				isMediumOrLarger={isMediumOrLarger}
 				showCountdown={showCountdown}
 				setShowCountdown={setShowCountdown}
+				highlightColor={highlightColor}
+				setHighlightColor={setHighlightColor}
+				siteTitle={siteTitle}
+				setSiteTitle={setSiteTitle}
 				originalGradingScale={originalGradingScale}
 				onColorPreview={onColorPreview}
 			/></ClientOnly>
@@ -478,8 +489,9 @@ export default function Grades({
 										layout="preserve-aspect"
 										layoutId={`card-${layoutID}`}
 										whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
-										transition={{ duration: 0.12, ease: "easeOut" }}
-										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer ${countdownMatchesCourse(periods) && showCountdown ? 'bg-primary-500/10 border border-primary-300 dark:bg-primary-500/10 dark:border-primary-500/50' : 'bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700'}`}
+										transition={{ duration: 0.12, ease: "easeOut", layout: { type: "spring", stiffness: 120, damping: 20, mass: 0.5 } }}
+										style={countdownMatchesCourse(periods) && highlightColor ? {backgroundImage:`linear-gradient(rgb(var(--primary-500)/0.15),rgb(var(--primary-500)/0.15))`,borderColor:`rgb(var(--primary-500)/0.35)`}:{}}
+										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer border ${countdownMatchesCourse(periods) && highlightColor ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
 									>
 										<div className="">
 											{/* <Link href={`/grades/${layoutID}`} legacyBehavior> */}
@@ -488,7 +500,7 @@ export default function Grades({
 														<p className="font-bold">
 															{formatPeriods(periods)} -{" "}
 															<motion.span
-																layout
+		
 																layoutId={`name-${layoutID}`}
 																className="font-semibold"
 															>
@@ -497,14 +509,12 @@ export default function Grades({
 														</p>
 													</h5>
 													<motion.p
-														layoutId={`teacher-${layoutID}`}
-														layout
 														className="text-md tracking-tight text-gray-900 dark:text-white flex items-center gap-2"
 													>
 														{teacher.name}
 														{countdownMatchesCourse(periods) && showCountdown && (
-															<span className={`text-xs font-medium rounded-full px-2 py-0.5 ${urgencyClass(countdown.ms, 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300')}`}>
-																{countdown.label}
+															<span className={`text-xs font-medium rounded-full px-2 py-0.5 ${urgencyClass(countdownTick?.ms ?? 0, 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300')}`}>
+																{countdownTick?.label}
 															</span>
 														)}
 													</motion.p>
@@ -526,23 +536,19 @@ export default function Grades({
 										{settings ? (!isNaN(grade.raw) && ` (${grade.raw}%)`) : (!isNaN(grade.raw) ? `${grade.raw}%`:"")}
 									</motion.span>
 									{(settings.finals?.show && finalGrade) &&
-									<motion.div
-										layoutId={`final-${layoutID}`}
-										layout="preserve-aspect"
+									<div
 										style={{color:finalGrade.color.includes("#") && finalGrade.color}}
 										className={`text-md md:text-xl font-bold text-${finalGrade.color}-400`}
 									>
 										Final, {finalGrade.letter} {!isNaN(finalGrade.raw) ? (`(${settings.rounding.percent ? (finalGrade.raw).toFixed(settings.rounding.percentPlaces) : finalGrade.raw}%)`) : ""}
-									</motion.div>}
-										{semesterGrade &&
-									<motion.div
-										layoutId={`semester-${layoutID}`}
-										layout="preserve-aspect"
+									</div>}
+									{semesterGrade &&
+									<div
 										style={{color:semesterGrade.color.includes("#") && semesterGrade.color}}
 										className={`text-md md:text-xl font-bold text-${semesterGrade.color}-400`}
 									>
 										{!settings?.finals?.isSemester && ordinalSuffix(indexX+1)} Semester, {semesterGrade.letter} {!isNaN(semesterGrade.raw) ? (`(${settings.rounding.percent ? (semesterGrade.raw).toFixed(settings.rounding.percentPlaces) : semesterGrade.raw}%)`) : ""}
-									</motion.div>}
+									</div>}
 									</div>
 
 									<Link href={`/grades/${layoutID}`} legacyBehavior>

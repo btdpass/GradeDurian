@@ -45,6 +45,10 @@ interface GradesProps {
 	guestLogin:()=>void
 	showCountdown:boolean;
 	setShowCountdown:(v:boolean)=>void;
+	highlightColor:string|null;
+	setHighlightColor:(v:string|null)=>void;
+	siteTitle:string;
+	setSiteTitle:(v:string)=>void;
 	originalGradingScale:any;
 	onColorPreview?:(hex:string)=>void;
 }
@@ -58,7 +62,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,guestLogin,showCountdown,setShowCountdown,originalGradingScale,onColorPreview
+	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,guestLogin,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,originalGradingScale,onColorPreview
 }: GradesProps) {
 	const router = useRouter();
 	const [loading,setLoading]=useState(!Boolean(grades))
@@ -255,6 +259,10 @@ export default function Grades({
 				isMediumOrLarger={isMediumOrLarger}
 				showCountdown={showCountdown}
 				setShowCountdown={setShowCountdown}
+				highlightColor={highlightColor}
+				setHighlightColor={setHighlightColor}
+				siteTitle={siteTitle}
+				setSiteTitle={setSiteTitle}
 				originalGradingScale={originalGradingScale}
 			/></ClientOnly>
 

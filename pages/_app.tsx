@@ -18,7 +18,7 @@ import useWindowSize from '../hooks/useWindowSize';
 import allDistricts from "../lib/districts";
 import { springConfig,reducedMotionConfig } from "../utils/motionConfig";
 import { SchoolsListType } from "../utils/grades";
-import {grades as sample,studentInfo as info,document,schedule,attendance} from "../utils/sample"
+import {grades as sample,studentInfo as info,document as sampleDocument,schedule,attendance} from "../utils/sample"
 
 interface Toast {
 	title: string;
@@ -92,6 +92,34 @@ function MyApp({ Component, pageProps }) {
 	const [client, setClient] = useState<Awaited<ReturnType<typeof StudentVue.login>>["client"]>(undefined);
 	const [settingsModal,setSettingsModal]=useState<boolean>(false);
 	const [showCountdown,setShowCountdown]=useState<boolean>(true);
+	const [highlightColor,setHighlightColor]=useState<string|null>(null);
+	const [siteTitle,setSiteTitle]=useState<string>(() => {
+		if (typeof window !== 'undefined') return localStorage.getItem('siteTitle') ?? "";
+		return "";
+	});
+	const prevSiteTitleRef = useRef("");
+	useEffect(() => {
+		const APP_NAME = "Grade Durian";
+		const prev = prevSiteTitleRef.current;
+		const applyTitle = () => {
+			let t = document.title;
+			if (prev && prev !== APP_NAME) t = t.replace(prev, APP_NAME);
+			if (siteTitle && siteTitle !== APP_NAME) t = t.replace(APP_NAME, siteTitle);
+			if (t !== document.title) document.title = t;
+		};
+		prevSiteTitleRef.current = siteTitle || "";
+		localStorage.setItem('siteTitle', siteTitle || "");
+		applyTitle();
+		if (!siteTitle || siteTitle === APP_NAME) return;
+		const titleEl = document.querySelector('title');
+		if (!titleEl) return;
+		const observer = new MutationObserver(() => {
+			const updated = document.title.replace(APP_NAME, siteTitle);
+			if (updated !== document.title) document.title = updated;
+		});
+		observer.observe(titleEl, { childList: true });
+		return () => observer.disconnect();
+	}, [siteTitle]);
 	const [originalGradingScale,setOriginalGradingScale]=useState<any>(null);
 	const [logoSrc, setLogoSrc] = useState<string>(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`);
 	const [studentInfo, setStudentInfo] = useState(undefined);
@@ -111,13 +139,18 @@ function MyApp({ Component, pageProps }) {
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
 	const [gated, setGated] = useState(true); // url masking
+	const logoColorApplied = useRef(false);
 
 	const applyColor = (hex: string) => {
 		applyPalette(hex);
+		logoColorApplied.current = true;
 		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
 		if (hex === '#f43f5e') {
 			setLogoSrc(`${base}/assets/logo1.png`);
 			updateFavicon(`${base}/favicon1.ico`);
+		} else if (hex === DEFAULT_PRIMARY) {
+			setLogoSrc(`${base}/assets/logo.png`);
+			updateFavicon(`${base}/favicon.ico`);
 		} else {
 			recolorImage(`${base}/assets/logo.png`, hex).then(url => {
 				setLogoSrc(url);
@@ -136,7 +169,13 @@ function MyApp({ Component, pageProps }) {
 		}
 		if (gated) return;
 		const cached = localStorage.getItem('primaryColor');
-		if (cached) applyColor(cached);
+		if (cached) {
+			applyPalette(cached);
+			if (!logoColorApplied.current) {
+				logoColorApplied.current = true;
+				applyColor(cached);
+			}
+		}
 	}, [router.pathname, gated]);
 
 	useEffect(() => {
@@ -172,7 +211,7 @@ function MyApp({ Component, pageProps }) {
 
 	function guestLogin(){
 		//@ts-expect-error
-		setClient({guest:true,loadedAttendance:attendance,loadedSchedule:schedule,loadedDocuments:[{file:{date:new Date(),type:"Sample"},comment:"Sample Document",get:()=>{return [{base64:document}]	}}]})
+		setClient({guest:true,loadedAttendance:attendance,loadedSchedule:schedule,loadedDocuments:[{file:{date:new Date(),type:"Sample"},comment:"Sample Document",get:()=>{return [{base64:sampleDocument}]	}}]})
 		setGrades(sample)
 		setStudentInfo(info)
 		setMP(0);
@@ -315,10 +354,12 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					if (!result.status) return;
 					const saved = result.settings;
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
+				if (saved.highlightColor !== undefined) setHighlightColor(saved.highlightColor ?? null);
+				if (saved.siteTitle !== undefined) setSiteTitle(saved.siteTitle ?? "");
 				if (saved.primaryColor) { applyPalette(saved.primaryColor, true); applyColor(saved.primaryColor); }
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
-						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor") continue;
+						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor" || key === "highlightColor") continue;
 						for (const prop in saved[key]) {
 							if (saved[key][prop] === false) saved[key][prop] = saved.default[prop];
 						}
@@ -617,7 +658,7 @@ const logout = async () => {
 	return (
 		<Flowbite>
 			<Head>
-				<title>Grade Durian</title>
+				<title>{siteTitle || "Grade Durian"}</title>
 				</Head>
 			<div className="fixed p-5 z-[60]">
 				{toasts.map(({ title, type }, i) => (
@@ -642,7 +683,7 @@ const logout = async () => {
 			</div>
 		
 			<div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} />
+				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} siteTitle={siteTitle} />
 				<div>
 					{(!client || noShowSidebar.includes(router.pathname)) && (
 					<MotionConfig transition={springConfig}>
@@ -676,7 +717,11 @@ const logout = async () => {
 								guestLogin={guestLogin}
 								donation={donation}
 								showCountdown={showCountdown}
+								highlightColor={highlightColor}
+								setHighlightColor={setHighlightColor}
 								setShowCountdown={setShowCountdown}
+								siteTitle={siteTitle}
+								setSiteTitle={setSiteTitle}
 								originalGradingScale={originalGradingScale}
 								onColorPreview={applyColor}
 
@@ -729,7 +774,11 @@ const logout = async () => {
 							 			guestLogin={guestLogin}
 										donation={donation}
 											showCountdown={showCountdown}
+								highlightColor={highlightColor}
+								setHighlightColor={setHighlightColor}
 											setShowCountdown={setShowCountdown}
+								siteTitle={siteTitle}
+								setSiteTitle={setSiteTitle}
 								originalGradingScale={originalGradingScale}
 								onColorPreview={applyColor}
 									/>
@@ -774,7 +823,11 @@ const logout = async () => {
 										guestLogin={guestLogin}
 										donation={donation}
 											showCountdown={showCountdown}
+								highlightColor={highlightColor}
+								setHighlightColor={setHighlightColor}
 											setShowCountdown={setShowCountdown}
+								siteTitle={siteTitle}
+								setSiteTitle={setSiteTitle}
 								originalGradingScale={originalGradingScale}
 								onColorPreview={applyColor}
 									/>

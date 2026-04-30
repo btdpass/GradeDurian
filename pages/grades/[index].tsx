@@ -57,6 +57,10 @@ interface GradesProps {
 	schoolIndex:number
 	showCountdown:boolean;
 	setShowCountdown:(v:boolean)=>void;
+	highlightColor:string|null;
+	setHighlightColor:(v:string|null)=>void;
+	siteTitle:string;
+	setSiteTitle:(v:string)=>void;
 	originalGradingScale:any;
 	onColorPreview?:(hex:string)=>void;
 }
@@ -88,7 +92,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,markingPeriod,setMarkingPeriod,modalBg,setModalBg,settingsModal,setSettingsModal,schoolsList,schoolIndex,showCountdown,setShowCountdown,originalGradingScale,onColorPreview
+	width,markingPeriod,setMarkingPeriod,modalBg,setModalBg,settingsModal,setSettingsModal,schoolsList,schoolIndex,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,originalGradingScale,onColorPreview
 	
 }: GradesProps) {
 	const router = useRouter();
@@ -480,6 +484,10 @@ export default function Grades({
 				isMediumOrLarger={isMediumOrLarger}
 				showCountdown={showCountdown}
 				setShowCountdown={setShowCountdown}
+				highlightColor={highlightColor}
+				setHighlightColor={setHighlightColor}
+				siteTitle={siteTitle}
+				setSiteTitle={setSiteTitle}
 				originalGradingScale={originalGradingScale}
 			/></ClientOnly>
 
@@ -539,7 +547,6 @@ export default function Grades({
 
 
 					<motion.p
-						layoutId={`teacher-${course?.layoutID}`}
 						layout
 						className="text-md tracking-tight mb-2.5 text-gray-900 dark:text-white"
 					>

@@ -24,6 +24,10 @@ interface props{
   isMediumOrLarger:boolean;
   showCountdown:boolean;
   setShowCountdown:(v:boolean)=>void;
+  highlightColor:string|null;
+  setHighlightColor:(v:string|null)=>void;
+  siteTitle:string;
+  setSiteTitle:(v:string)=>void;
   originalGradingScale:any;
   onColorPreview?:(hex:string)=>void;
 }
@@ -33,7 +37,7 @@ interface props{
 
 
 
-export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,originalGradingScale,onColorPreview}:props){
+export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,originalGradingScale,onColorPreview}:props){
           const settings= grades?.[0]?.settings
   const course = index==-1 ? {courseID:"default",settings:settings.default,name:"",identifier:"default"} : grades?.[period]?.courses[index];
         const courseSettings=course.settings
@@ -49,16 +53,21 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         //new stack based view version
         const [viewStack,setViewStack] = useState(["home"])
         const [pendingShowCountdown, setPendingShowCountdown] = useState(showCountdown)
+        const [pendingHighlightColor, setPendingHighlightColor] = useState<string | null>((settings as any).highlightColor ?? null)
         const [pendingPrimaryColor, setPendingPrimaryColor] = useState<string>((settings as any).primaryColor || DEFAULT_PRIMARY)
+        const [pendingSiteTitle, setPendingSiteTitle] = useState<string>((settings as any).siteTitle ?? "")
         const originalDefault = useRef(structuredClone(settings.default))
+        const titleInputRef = useRef<HTMLInputElement>(null)
+        const [colorOpen, setColorOpen] = useState(false)
+        const [titleOpen, setTitleOpen] = useState(false)
         const currentView=viewStack.at(-1)
 
 
         const animationPropsHome = {
-          initial: { x: "100%", opacity: 0 },
-          animate: { x: 0, opacity: 1 },
-          exit: { x: "-100%", opacity: 0 },
-          transition: { duration: 0.15 },
+          // initial: { x: "100%", opacity: 0 },
+          // animate: { x: 0, opacity: 1 },
+          // exit: { x: "-100%", opacity: 0 },
+          // transition: { duration: 0.15 },
         };
 
         const animationPropsPage=animationPropsHome //for now
@@ -70,7 +79,9 @@ useEffect(()=>{
   if(!showModal) return;
   originalDefault.current = structuredClone(settings.default)
   setPendingShowCountdown(showCountdown)
+  setPendingHighlightColor((settings as any).highlightColor ?? null)
   setPendingPrimaryColor((settings as any).primaryColor || DEFAULT_PRIMARY)
+  setPendingSiteTitle((settings as any).siteTitle ?? "")
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
   setFinals(course.settings.finals)
@@ -221,7 +232,7 @@ async function saveAndApply(tempSettings){
 
 
         	for(let key in tempSettings){
-		        if(key=="default"||key=="mode"||key=="showCountdown"||key=="primaryColor"){continue}
+		        if(key=="default"||key=="mode"||key=="showCountdown"||key=="primaryColor"||key=="highlightColor"||key=="siteTitle"){continue}
 		        else{
 			    for(let prop in tempSettings[key]){
 				    if(tempSettings[key][prop]==false){
@@ -300,9 +311,13 @@ async function saveNew(){
     tempSettings[course.identifier]=newScale //cause fuck ur manual mode
     ;(tempSettings as any).showCountdown = pendingShowCountdown
     setShowCountdown(pendingShowCountdown)
+    ;(tempSettings as any).highlightColor = pendingHighlightColor
+    setHighlightColor(pendingHighlightColor)
     ;(tempSettings as any).primaryColor = pendingPrimaryColor
     applyPalette(pendingPrimaryColor, true)
     onColorPreview?.(pendingPrimaryColor)
+    ;(tempSettings as any).siteTitle = pendingSiteTitle
+    setSiteTitle(pendingSiteTitle)
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
@@ -328,7 +343,7 @@ async function saveNew(){
 
 
 async function resetAllClasses(){
-  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:pendingPrimaryColor}
+  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:pendingPrimaryColor,highlightColor:pendingHighlightColor,siteTitle:pendingSiteTitle}
   const tempGrades=await saveAndApply(tempSettings)
   if(tempGrades){
   setShowModal(false)}
@@ -446,7 +461,7 @@ return(
 {letterScale!=undefined ? (
 <Modal 
 show={showModal}
-onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); setShowModal(false); }}
+onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setShowModal(false); }}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
@@ -480,23 +495,18 @@ className="overflow-y-auto"
       className="flex flex-col gap-4"
     >
     <React.Fragment key="dont fw me twin">
-      {index === -1 && <motion.div
+      {index === -1 && <motion.button
         {...animationPropsHome}
         key="countdown"
         style={{borderWidth:1}}
-        className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-2 flex justify-between items-center"
+        onClick={() => setViewStack(["currentclass"])}
+        className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"
       >
-        <p className="text-lg font-semibold dark:text-white">Current Class</p>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            className="sr-only peer"
-            checked={pendingShowCountdown}
-            onChange={(e) => setPendingShowCountdown(e.target.checked)}
-          />
-          <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-        </label>
-      </motion.div>}
+        <div className="flex justify-between items-center">
+          Current Class
+          <HiArrowCircleRight/>
+        </div>
+      </motion.button>}
       {index === -1 && <motion.button
         {...animationPropsHome}
         key="sitecolor"
@@ -505,7 +515,7 @@ className="overflow-y-auto"
         className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"
       >
         <div className="flex justify-between items-center">
-          Site Color
+          Site Theme
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-full border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}} />
             <HiArrowCircleRight/>
@@ -1477,37 +1487,90 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         >
           <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
         </button>
-        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Site Color</p>}
+        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Site Theme</p>}
       </div>
 
       {(() => {
-        const presetColors = [DEFAULT_PRIMARY, '#f43f5e'];
-        const isCustom = !presetColors.includes(pendingPrimaryColor);
-        const selected = (color: string) => pendingPrimaryColor === color;
+        const presets = [
+          { label: 'Durian', color: DEFAULT_PRIMARY, title: 'Grade Durian', msg: "Default" },
+          { label: 'Melon', color: '#f43f5e', title: 'Grade Melon', msg: "Legacy"},
+        ];
+        const isCustom = !presets.some(p => p.color === pendingPrimaryColor && p.title === pendingSiteTitle);
+        const selected = (color: string, title: string) => pendingPrimaryColor === color && pendingSiteTitle === title;
         const rowClass = (active: boolean) => `flex items-center justify-between p-3 rounded-lg border ${active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`;
         return (
           <div className="flex flex-col gap-3">
-            {[
-              { label: 'Durian', color: DEFAULT_PRIMARY, isDefault: true },
-              { label: 'Melon', color: '#f43f5e' },
-            ].map(({ label, color, isDefault }: any) => (
-              <button key={color} onClick={() => { setPendingPrimaryColor(color); applyPalette(color); }} className={rowClass(selected(color))}>
-                <p className="dark:text-white font-semibold">{label}{isDefault && <span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">Default</span>}</p>
+            {presets.map(({ label, color, title, msg }: any) => (
+              <button key={color} onClick={() => { setPendingPrimaryColor(color); applyPalette(color); onColorPreview?.(color); setPendingSiteTitle(title); setSiteTitle(title); }} className={rowClass(selected(color, title))}>
+                <p className="dark:text-white font-semibold">{label}{<span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">{msg}</span>}</p>
                 <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: color}} />
               </button>
             ))}
-            <label className={`${rowClass(isCustom)} cursor-pointer`}>
+            <button onClick={() => setViewStack(["color", "customtheme"])} className={`${rowClass(isCustom)}`}>
               <div className="flex items-center gap-1.5 dark:text-white font-semibold">
                 Custom
-                <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" />
+                {/* <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" /> */}
               </div>
-              <div className="w-6 h-6 rounded-full border border-gray-300 overflow-hidden" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}}>
-                <input type="color" className="opacity-0 w-full h-full cursor-pointer" value={pendingPrimaryColor} onChange={(e) => { setPendingPrimaryColor(e.target.value); applyPalette(e.target.value); }} />
+              <div className="flex items-center gap-2">
+                {/* <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}} /> */}
+                <HiArrowCircleRight className="dark:text-white" />
               </div>
-            </label>
+            </button>
           </div>
         );
       })()}
+    </motion.div>
+  }
+
+  {currentView === "customtheme" &&
+    <motion.div {...animationPropsPage} key="customthemePage">
+      <div className="flex justify-between items-center mb-4">
+        <button
+          style={{borderWidth:1, padding:5, borderRadius:12}}
+          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          onClick={() => setViewStack(["color"])}
+        >
+          <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
+        </button>
+        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Custom</p>}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] cursor-pointer">
+          <div className="flex items-center gap-1.5">
+            <p className="dark:text-white font-semibold">Color</p>
+            <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
+          </div>
+          <div className="w-6 h-6 rounded border border-gray-300 overflow-hidden" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}}>
+            <input type="color" className="opacity-0 w-full h-full cursor-pointer" value={pendingPrimaryColor} onChange={(e) => { setPendingPrimaryColor(e.target.value); applyPalette(e.target.value); }} />
+          </div>
+        </label>
+
+        <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] overflow-hidden">
+          <button className="flex items-center justify-between p-3 w-full" onClick={() => { setTitleOpen(v => !v); if (!titleOpen) setTimeout(() => titleInputRef.current?.focus(), 50); }}>
+            <div className="flex items-center gap-1.5">
+              <p className="dark:text-white font-semibold">Title</p>
+              <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-gray-400 dark:text-gray-500 truncate max-w-[8rem]">{pendingSiteTitle || "Grade Durian"}</p>
+              <HiArrowCircleDown className="dark:text-white flex-shrink-0" style={{transform: titleOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s'}} />
+            </div>
+          </button>
+          {titleOpen && (
+            <div className="px-3 pb-3">
+              <input
+                ref={titleInputRef}
+                type="text"
+                placeholder="Grade Durian"
+                value={pendingSiteTitle}
+                onChange={(e) => { setPendingSiteTitle(e.target.value); setSiteTitle(e.target.value); }}
+                className="w-full bg-white dark:bg-gray-700 text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+              />
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   }
 
@@ -1516,6 +1579,42 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
 
 
+
+  {currentView === "currentclass" &&
+    <motion.div {...animationPropsPage} key="currentclassPage">
+      <div className="flex justify-between items-center mb-4">
+        <button
+          style={{borderWidth:1, padding:5, borderRadius:12}}
+          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          onClick={() => setViewStack(["home"])}
+        >
+          <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
+        </button>
+        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Current Class</p>}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div style={{borderWidth:1}} className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-3 flex justify-between items-center">
+          <p className="text-base font-semibold dark:text-white">Countdown</p>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" className="sr-only peer" checked={pendingShowCountdown} onChange={(e) => setPendingShowCountdown(e.target.checked)} />
+            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
+          </label>
+        </div>
+
+        <div style={{borderWidth:1}} className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-3 flex justify-between items-center">
+          <div>
+            <p className="text-base font-semibold dark:text-white">Highlight</p>
+            {/* <p className="text-xs text-gray-500 dark:text-gray-400">Highlight the active class card</p> */}
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" className="sr-only peer" checked={!!pendingHighlightColor} onChange={(e) => setPendingHighlightColor(e.target.checked ? "on" : null)} />
+            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
+          </label>
+        </div>
+      </div>
+    </motion.div>
+  }
 
   </AnimatePresence>
   
@@ -1544,10 +1643,10 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       type="button"
       style={{userSelect:"none"}}
       onClick={()=>{
-//not yet cuz the structure doesn't match yet, but, setLetterGrade(course.gradingScale)
         applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY)
+        onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY)
+        setSiteTitle((settings as any).siteTitle ?? "")
         setShowModal(false)
-
       }}
       >Cancel</button>
 

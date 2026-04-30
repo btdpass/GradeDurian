@@ -14,6 +14,7 @@ interface TopBarProps {
 	client: any;
 	logout: () => void;
 	logoSrc?: string;
+	siteTitle?: string;
 }
 
 const DarkModeToggle = dynamic(() => import('../components/Toggle'), {
@@ -23,7 +24,7 @@ const DarkModeToggle = dynamic(() => import('../components/Toggle'), {
 
 
 
-export default function TopBar({ studentInfo, logout, client, logoSrc }: TopBarProps) {
+export default function TopBar({ studentInfo, logout, client, logoSrc, siteTitle }: TopBarProps) {
 	const [dropdown, setDropdown] = useState(false);
 	const [advertisePWA, setAdvertisePWA] = useState(false);
 	const [advertiseDiscord, setAdvertiseDiscord] = useState(false);
@@ -155,7 +156,7 @@ try{
 							alt="Grade Durian Logo"
 						/>
 						<span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">
-							Grade Durian
+							{siteTitle || "Grade Durian"}
 						</span>
 					</Link>
 					<div className="flex items-center md:order-2 gap-2">

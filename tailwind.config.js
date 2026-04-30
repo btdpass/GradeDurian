@@ -51,12 +51,6 @@ module.exports = {
 		},
 		'bg-primary-50',
 		'bg-primary-100',
-		'bg-primary-500/10',
-		'dark:bg-primary-500/15',
-		'dark:bg-primary-500/10',
-		'border-primary-300',
-		'border-primary-500/50',
-		'dark:border-primary-500/50',
 	],
 	plugins: [require("flowbite/plugin")],
 };
