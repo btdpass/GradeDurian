@@ -1565,7 +1565,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
                 placeholder="Grade Durian"
                 value={pendingSiteTitle}
                 onChange={(e) => { setPendingSiteTitle(e.target.value); setSiteTitle(e.target.value); }}
-                className="w-full bg-white dark:bg-gray-700 text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="w-full bg-white dark:bg-gray-700 text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 focus:outline-none focus:ring-0 focus:border-primary-500 dark:focus:border-primary-500"
               />
             </div>
           )}
