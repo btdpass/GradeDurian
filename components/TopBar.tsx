@@ -13,6 +13,7 @@ interface TopBarProps {
 	studentInfo: any;
 	client: any;
 	logout: () => void;
+	logoSrc?: string;
 }
 
 const DarkModeToggle = dynamic(() => import('../components/Toggle'), {
@@ -22,7 +23,7 @@ const DarkModeToggle = dynamic(() => import('../components/Toggle'), {
 
 
 
-export default function TopBar({ studentInfo, logout, client }: TopBarProps) {
+export default function TopBar({ studentInfo, logout, client, logoSrc }: TopBarProps) {
 	const [dropdown, setDropdown] = useState(false);
 	const [advertisePWA, setAdvertisePWA] = useState(false);
 	const [advertiseDiscord, setAdvertiseDiscord] = useState(false);
@@ -149,7 +150,7 @@ try{
 				<div className="flex flex-wrap justify-between items-center">
 					<Link href={client ? "/grades" : "/"} className="flex items-center">
 						<img
-							src={`${process.env.NEXT_PUBLIC_BASE_PATH}/assets/logo.png`}
+							src={logoSrc || `${process.env.NEXT_PUBLIC_BASE_PATH}/assets/logo.png`}
 							className="mr-1.5 sm:mr-3 h-7 w-7 sm:h-9 sm:w-9 object-contain"
 							alt="Grade Durian Logo"
 						/>

@@ -51,6 +51,7 @@ interface GradesProps {
 	showCountdown:boolean;
 	setShowCountdown:(v:boolean)=>void;
 	originalGradingScale:any;
+	onColorPreview?:(hex:string)=>void;
 }
 
 
@@ -63,7 +64,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,donation,showCountdown,setShowCountdown,originalGradingScale
+	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,donation,showCountdown,setShowCountdown,originalGradingScale,onColorPreview
 }: GradesProps) {
 	const router = useRouter();
 	const [loading,setLoading]=useState(!Boolean(grades))
@@ -391,6 +392,7 @@ export default function Grades({
 				showCountdown={showCountdown}
 				setShowCountdown={setShowCountdown}
 				originalGradingScale={originalGradingScale}
+				onColorPreview={onColorPreview}
 			/></ClientOnly>
 
 						<ClientOnly><DonationModal width={width} createError={createError} donation={donation} client={client}/></ClientOnly>

@@ -1,7 +1,7 @@
 import React,{useState,useEffect,useRef} from "react";
 import { applyPalette, DEFAULT_PRIMARY } from "../utils/colorPalette";
 import {Modal} from "flowbite-react"
-import { HiOutlineTrash,HiArrowCircleRight,HiArrowCircleLeft, HiArrowCircleDown } from "react-icons/hi";
+import { HiOutlineTrash,HiArrowCircleRight,HiArrowCircleLeft, HiArrowCircleDown, HiPencil } from "react-icons/hi";
 import { reCalculateAll,parseGrades,letterGradeColor, reCalculateCourse, toggleSemester, ordinalSuffix, Course} from "../utils/grades";
 import {colorShit} from "./colors"
 import {Settings,Grades,parseDate,Cache,CourseSettings,templateFinals,GlobalSettings,simplifyWeights,initalizeFinals2,Finals} from "../utils/grades"
@@ -25,6 +25,7 @@ interface props{
   showCountdown:boolean;
   setShowCountdown:(v:boolean)=>void;
   originalGradingScale:any;
+  onColorPreview?:(hex:string)=>void;
 }
 
 
@@ -32,7 +33,7 @@ interface props{
 
 
 
-export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,originalGradingScale}:props){
+export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,originalGradingScale,onColorPreview}:props){
           const settings= grades?.[0]?.settings
   const course = index==-1 ? {courseID:"default",settings:settings.default,name:"",identifier:"default"} : grades?.[period]?.courses[index];
         const courseSettings=course.settings
@@ -301,6 +302,7 @@ async function saveNew(){
     setShowCountdown(pendingShowCountdown)
     ;(tempSettings as any).primaryColor = pendingPrimaryColor
     applyPalette(pendingPrimaryColor, true)
+    onColorPreview?.(pendingPrimaryColor)
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
@@ -453,8 +455,8 @@ className="dark:bg-gray-700"
 
 >
 
-<p className="text-2xl">Settings <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
-{index==-1 && <p className="text-sm">Changes here will apply to the entire site and all your classes!</p>}
+<p className="text-2xl">{index === -1 ? 'Settings' : 'Class Settings'} <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
+{index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>}
 </Modal.Header>
 
 
@@ -478,7 +480,7 @@ className="overflow-y-auto"
       className="flex flex-col gap-4"
     >
     <React.Fragment key="dont fw me twin">
-      <motion.div
+      {index === -1 && <motion.div
         {...animationPropsHome}
         key="countdown"
         style={{borderWidth:1}}
@@ -494,28 +496,22 @@ className="overflow-y-auto"
           />
           <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
         </label>
-      </motion.div>
-      <motion.div
+      </motion.div>}
+      {index === -1 && <motion.button
         {...animationPropsHome}
         key="sitecolor"
         style={{borderWidth:1}}
-        className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-2 flex justify-between items-center"
+        onClick={() => setViewStack(["color"])}
+        className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"
       >
-        <p className="text-lg font-semibold dark:text-white">Site Color</p>
-        <div className="flex items-center gap-2">
-          {pendingPrimaryColor !== DEFAULT_PRIMARY && (
-            <button onClick={() => { setPendingPrimaryColor(DEFAULT_PRIMARY); applyPalette(DEFAULT_PRIMARY); }} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">Reset</button>
-          )}
-          <label className="w-6 h-6 rounded cursor-pointer overflow-hidden block border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}}>
-            <input
-              type="color"
-              className="opacity-0 w-full h-full cursor-pointer"
-              value={pendingPrimaryColor}
-              onChange={(e) => { setPendingPrimaryColor(e.target.value); applyPalette(e.target.value); }}
-            />
-          </label>
+        <div className="flex justify-between items-center">
+          Site Color
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}} />
+            <HiArrowCircleRight/>
+          </div>
         </div>
-      </motion.div>
+      </motion.button>}
       <motion.button
       {...animationPropsHome}
       key="letter"
@@ -1471,7 +1467,49 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
     </>
   }
 
+  {currentView === "color" &&
+    <motion.div {...animationPropsPage} key="colorPage">
+      <div className="flex justify-between items-center mb-4">
+        <button
+          style={{borderWidth:1, padding:5, borderRadius:12}}
+          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          onClick={() => setViewStack(["home"])}
+        >
+          <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
+        </button>
+        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Site Color</p>}
+      </div>
 
+      {(() => {
+        const presetColors = [DEFAULT_PRIMARY, '#f43f5e'];
+        const isCustom = !presetColors.includes(pendingPrimaryColor);
+        const selected = (color: string) => pendingPrimaryColor === color;
+        const rowClass = (active: boolean) => `flex items-center justify-between p-3 rounded-lg border ${active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`;
+        return (
+          <div className="flex flex-col gap-3">
+            {[
+              { label: 'Grade Durian', color: DEFAULT_PRIMARY, isDefault: true },
+              { label: 'Grade Melon', color: '#f43f5e' },
+            ].map(({ label, color, isDefault }: any) => (
+              <button key={color} onClick={() => { setPendingPrimaryColor(color); applyPalette(color); }} className={rowClass(selected(color))}>
+                <p className="dark:text-white font-semibold">{label}{isDefault && <span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">Default</span>}</p>
+                <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: color}} />
+              </button>
+            ))}
+            <label className={`${rowClass(isCustom)} cursor-pointer`}>
+              <div className="flex items-center gap-1.5 dark:text-white font-semibold">
+                Custom
+                <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" />
+              </div>
+              <div className="w-6 h-6 rounded-full border border-gray-300 overflow-hidden" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}}>
+                <input type="color" className="opacity-0 w-full h-full cursor-pointer" value={pendingPrimaryColor} onChange={(e) => { setPendingPrimaryColor(e.target.value); applyPalette(e.target.value); }} />
+              </div>
+            </label>
+          </div>
+        );
+      })()}
+    </motion.div>
+  }
 
 
 

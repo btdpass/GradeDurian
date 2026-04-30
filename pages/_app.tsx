@@ -7,7 +7,7 @@ import Topbar from "../components/TopBar";
 import SideBar from "../components/SideBar";
 import MobileBar from "../components/MobileBar";
 import { Grades,parseGrades,findCurrentPeriod,getCache,initalizeFinals2,reCalculateCourse,Cache} from "../utils/grades";
-import { applyPalette, DEFAULT_PRIMARY } from "../utils/colorPalette";
+import { applyPalette, DEFAULT_PRIMARY, recolorImage, updateFavicon } from "../utils/colorPalette";
 import Head from "next/head";
 import { HiX } from "react-icons/hi";
 import { AnimateSharedLayout,MotionConfig, motion, useAnimation, useMotionValue, useAnimationFrame, animate } from "framer-motion";
@@ -30,7 +30,7 @@ interface Toast {
 const noShowNav = ["/login", "/", "/privacy/ios","/privacy/web", "/letter","/faq"];
 const noShowSidebar = ["/login", "/"];
 
-function LogoButton({ openInFrame, basePath }: { openInFrame: () => void, basePath: string }) {
+function LogoButton({ openInFrame, basePath, logoSrc }: { openInFrame: () => void, basePath: string, logoSrc: string }) {
 	const rotation = useMotionValue(0);
 	const scaleVal = useMotionValue(1);
 	const isHovered = useRef(false);
@@ -74,7 +74,7 @@ function LogoButton({ openInFrame, basePath }: { openInFrame: () => void, basePa
 					className="absolute inset-0 rounded-full bg-primary-400"
 				/>
 				<motion.img
-					src={`${basePath}/assets/logo.png`}
+					src={logoSrc}
 					style={{ rotate: rotation, scale: scaleVal, clipPath: 'circle(50%)' }}
 					className="w-24 h-24 relative"
 				/>
@@ -93,6 +93,7 @@ function MyApp({ Component, pageProps }) {
 	const [settingsModal,setSettingsModal]=useState<boolean>(false);
 	const [showCountdown,setShowCountdown]=useState<boolean>(true);
 	const [originalGradingScale,setOriginalGradingScale]=useState<any>(null);
+	const [logoSrc, setLogoSrc] = useState<string>(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`);
 	const [studentInfo, setStudentInfo] = useState(undefined);
 	const [toasts, setToasts] = useState<Toast[]>([]);
 	const [cacheLoading,setCacheLoading]=useState(true)
@@ -111,13 +112,26 @@ function MyApp({ Component, pageProps }) {
 	const isMediumOrLarger = width >= 768;
 	const [gated, setGated] = useState(true); // url masking
 
+	const applyColor = (hex: string) => {
+		applyPalette(hex);
+		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+		recolorImage(`${base}/assets/logo.png`, hex).then(url => {
+			setLogoSrc(url);
+			updateFavicon(url);
+		});
+	};
+
 	useEffect(() => {
 		if (router.pathname === '/' || router.pathname === '/login') {
 			applyPalette(DEFAULT_PRIMARY);
+			const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+			recolorImage(`${base}/assets/logo.png`, DEFAULT_PRIMARY).then(url => {
+				setLogoSrc(url);
+			});
 			return;
 		}
 		const cached = localStorage.getItem('primaryColor');
-		if (cached) applyPalette(cached);
+		if (cached) applyColor(cached);
 	}, [router.pathname]);
 
 	useEffect(() => {
@@ -295,7 +309,7 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					if (!result.status) return;
 					const saved = result.settings;
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
-				if (saved.primaryColor) applyPalette(saved.primaryColor, true);
+				if (saved.primaryColor) { applyPalette(saved.primaryColor, true); applyColor(saved.primaryColor); }
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
 						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor") continue;
@@ -588,7 +602,7 @@ const logout = async () => {
 					>
 						Stay in control of your grades.
 					</motion.p>
-					<LogoButton openInFrame={openInFrame} basePath={process.env.NEXT_PUBLIC_BASE_PATH} />
+					<LogoButton openInFrame={openInFrame} basePath={process.env.NEXT_PUBLIC_BASE_PATH} logoSrc={logoSrc} />
 				</div>
 			</div>
 		</Flowbite>
@@ -622,7 +636,7 @@ const logout = async () => {
 			</div>
 		
 			<div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} />
+				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} />
 				<div>
 					{(!client || noShowSidebar.includes(router.pathname)) && (
 					<MotionConfig transition={springConfig}>
@@ -658,6 +672,7 @@ const logout = async () => {
 								showCountdown={showCountdown}
 								setShowCountdown={setShowCountdown}
 								originalGradingScale={originalGradingScale}
+								onColorPreview={applyColor}
 
 							/>
 						</AnimateSharedLayout>
@@ -710,6 +725,7 @@ const logout = async () => {
 											showCountdown={showCountdown}
 											setShowCountdown={setShowCountdown}
 								originalGradingScale={originalGradingScale}
+								onColorPreview={applyColor}
 									/>
 								</AnimateSharedLayout>
 								</MotionConfig>
@@ -754,6 +770,7 @@ const logout = async () => {
 											showCountdown={showCountdown}
 											setShowCountdown={setShowCountdown}
 								originalGradingScale={originalGradingScale}
+								onColorPreview={applyColor}
 									/>
 								</AnimateSharedLayout>
 								</MotionConfig>
