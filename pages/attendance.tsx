@@ -69,7 +69,7 @@ export default function Attendance({ client,createError}: AttendanceProps) {
 			</Head>
 			{loading ? (
 				<div className="flex justify-center">
-					<Spinner size="xl" color="warning" />
+					<div style={{color:"rgb(var(--primary-500))"}} className="[&_svg]:fill-primary-500"><Spinner size="xl" color="warning" /></div>
 				</div>
 			) : (
 				<div className="w-full">

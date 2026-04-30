@@ -1,4 +1,5 @@
 import React,{useState,useEffect,useRef} from "react";
+import { applyPalette, DEFAULT_PRIMARY } from "../utils/colorPalette";
 import {Modal} from "flowbite-react"
 import { HiOutlineTrash,HiArrowCircleRight,HiArrowCircleLeft, HiArrowCircleDown } from "react-icons/hi";
 import { reCalculateAll,parseGrades,letterGradeColor, reCalculateCourse, toggleSemester, ordinalSuffix, Course} from "../utils/grades";
@@ -47,6 +48,7 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         //new stack based view version
         const [viewStack,setViewStack] = useState(["home"])
         const [pendingShowCountdown, setPendingShowCountdown] = useState(showCountdown)
+        const [pendingPrimaryColor, setPendingPrimaryColor] = useState<string>((settings as any).primaryColor || DEFAULT_PRIMARY)
         const originalDefault = useRef(structuredClone(settings.default))
         const currentView=viewStack.at(-1)
 
@@ -67,6 +69,7 @@ useEffect(()=>{
   if(!showModal) return;
   originalDefault.current = structuredClone(settings.default)
   setPendingShowCountdown(showCountdown)
+  setPendingPrimaryColor((settings as any).primaryColor || DEFAULT_PRIMARY)
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
   setFinals(course.settings.finals)
@@ -217,7 +220,7 @@ async function saveAndApply(tempSettings){
 
 
         	for(let key in tempSettings){
-		        if(key=="default"||key=="mode"){continue}
+		        if(key=="default"||key=="mode"||key=="showCountdown"||key=="primaryColor"){continue}
 		        else{
 			    for(let prop in tempSettings[key]){
 				    if(tempSettings[key][prop]==false){
@@ -296,6 +299,8 @@ async function saveNew(){
     tempSettings[course.identifier]=newScale //cause fuck ur manual mode
     ;(tempSettings as any).showCountdown = pendingShowCountdown
     setShowCountdown(pendingShowCountdown)
+    ;(tempSettings as any).primaryColor = pendingPrimaryColor
+    applyPalette(pendingPrimaryColor, true)
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
@@ -321,7 +326,7 @@ async function saveNew(){
 
 
 async function resetAllClasses(){
-  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown}
+  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:pendingPrimaryColor}
   const tempGrades=await saveAndApply(tempSettings)
   if(tempGrades){
   setShowModal(false)}
@@ -439,7 +444,7 @@ return(
 {letterScale!=undefined ? (
 <Modal 
 show={showModal}
-onClose={()=>setShowModal(false)}
+onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); setShowModal(false); }}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
@@ -448,8 +453,8 @@ className="dark:bg-gray-700"
 
 >
 
-<p className="text-2xl">Grade Settings <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
-{index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>}
+<p className="text-2xl">Settings <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
+{index==-1 && <p className="text-sm">Changes here will apply to the entire site and all your classes!</p>}
 </Modal.Header>
 
 
@@ -489,6 +494,27 @@ className="overflow-y-auto"
           />
           <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-primary-500 dark:peer-checked:bg-primary-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
         </label>
+      </motion.div>
+      <motion.div
+        {...animationPropsHome}
+        key="sitecolor"
+        style={{borderWidth:1}}
+        className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-2 flex justify-between items-center"
+      >
+        <p className="text-lg font-semibold dark:text-white">Site Color</p>
+        <div className="flex items-center gap-2">
+          {pendingPrimaryColor !== DEFAULT_PRIMARY && (
+            <button onClick={() => { setPendingPrimaryColor(DEFAULT_PRIMARY); applyPalette(DEFAULT_PRIMARY); }} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">Reset</button>
+          )}
+          <label className="w-6 h-6 rounded cursor-pointer overflow-hidden block border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}}>
+            <input
+              type="color"
+              className="opacity-0 w-full h-full cursor-pointer"
+              value={pendingPrimaryColor}
+              onChange={(e) => { setPendingPrimaryColor(e.target.value); applyPalette(e.target.value); }}
+            />
+          </label>
+        </div>
       </motion.div>
       <motion.button
       {...animationPropsHome}
@@ -1481,6 +1507,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       style={{userSelect:"none"}}
       onClick={()=>{
 //not yet cuz the structure doesn't match yet, but, setLetterGrade(course.gradingScale)
+        applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY)
         setShowModal(false)
 
       }}

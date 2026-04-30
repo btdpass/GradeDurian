@@ -262,7 +262,7 @@ export default function Login({
 								{(username==""&&password=="") ? "Sign in as Guest" : "Sign in"}
 								{loading && (
 									<div className="pl-4 inline-block">
-										<Spinner color="warning" />
+										<div style={{color:"rgb(var(--primary-500))"}} className="[&_svg]:fill-primary-500"><Spinner color="warning" /></div>
 									</div>
 								)}
 							</button>

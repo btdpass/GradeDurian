@@ -7,6 +7,7 @@ import Topbar from "../components/TopBar";
 import SideBar from "../components/SideBar";
 import MobileBar from "../components/MobileBar";
 import { Grades,parseGrades,findCurrentPeriod,getCache,initalizeFinals2,reCalculateCourse,Cache} from "../utils/grades";
+import { applyPalette, DEFAULT_PRIMARY } from "../utils/colorPalette";
 import Head from "next/head";
 import { HiX } from "react-icons/hi";
 import { AnimateSharedLayout,MotionConfig, motion, useAnimation, useMotionValue, useAnimationFrame, animate } from "framer-motion";
@@ -109,6 +110,11 @@ function MyApp({ Component, pageProps }) {
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
 	const [gated, setGated] = useState(true); // url masking
+
+	useEffect(() => {
+		const cached = localStorage.getItem('primaryColor');
+		if (cached) applyPalette(cached);
+	}, []);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -285,9 +291,10 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					if (!result.status) return;
 					const saved = result.settings;
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
+				if (saved.primaryColor) applyPalette(saved.primaryColor, true);
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
-						if (key === "default" || key === "mode" || key === "showCountdown") continue;
+						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor") continue;
 						for (const prop in saved[key]) {
 							if (saved[key][prop] === false) saved[key][prop] = saved.default[prop];
 						}

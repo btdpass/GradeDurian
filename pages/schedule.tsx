@@ -68,7 +68,7 @@ export default function Schedule({ client,createError }: ScheduleProps) {
 			</Head>
 			{loading ? (
 				<div className="flex justify-center">
-					<Spinner size="xl" color="warning" />
+					<div style={{color:"rgb(var(--primary-500))"}} className="[&_svg]:fill-primary-500"><Spinner size="xl" color="warning" /></div>
 				</div>
 			) : (
 				<div className="max-w-max">

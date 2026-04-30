@@ -103,7 +103,7 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date(); //now.setHours(8); // TEST: 12:30 PM during AP Bio (12:05–1:40)
+			const now = new Date(); //now.setHours(8); // TEST
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
@@ -374,7 +374,7 @@ export default function Grades({
 
 			{loading ? (
 				<div className="flex justify-center">
-					<Spinner size="xl" color="warning" />
+					<div style={{color:"rgb(var(--primary-500))"}} className="[&_svg]:fill-primary-500"><Spinner size="xl" color="warning" /></div>
 				</div>
 			) : (
 				<div className="md:max-w-max">
