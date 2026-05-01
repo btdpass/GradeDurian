@@ -100,17 +100,18 @@ function MyApp({ Component, pageProps }) {
 	const prevSiteTitleRef = useRef("");
 	useEffect(() => {
 		const APP_NAME = "Grade Durian";
+		const isLoggedInPage = !noShowNav.includes(router.pathname);
 		const prev = prevSiteTitleRef.current;
 		const applyTitle = () => {
 			let t = document.title;
 			if (prev && prev !== APP_NAME) t = t.replace(prev, APP_NAME);
-			if (siteTitle && siteTitle !== APP_NAME) t = t.replace(APP_NAME, siteTitle);
+			if (isLoggedInPage && siteTitle && siteTitle !== APP_NAME) t = t.replace(APP_NAME, siteTitle);
 			if (t !== document.title) document.title = t;
 		};
-		prevSiteTitleRef.current = siteTitle || "";
+		prevSiteTitleRef.current = isLoggedInPage ? (siteTitle || "") : "";
 		localStorage.setItem('siteTitle', siteTitle || "");
 		applyTitle();
-		if (!siteTitle || siteTitle === APP_NAME) return;
+		if (!isLoggedInPage || !siteTitle || siteTitle === APP_NAME) return;
 		const titleEl = document.querySelector('title');
 		if (!titleEl) return;
 		const observer = new MutationObserver(() => {
@@ -119,7 +120,7 @@ function MyApp({ Component, pageProps }) {
 		});
 		observer.observe(titleEl, { childList: true });
 		return () => observer.disconnect();
-	}, [siteTitle]);
+	}, [siteTitle, router.pathname]);
 	const [originalGradingScale,setOriginalGradingScale]=useState<any>(null);
 	const [logoSrc, setLogoSrc] = useState<string>(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`);
 	const [studentInfo, setStudentInfo] = useState(undefined);
@@ -584,7 +585,7 @@ useEffect(()=>{
 
 	function createError(message:string){
 		console.log("Verbose Error: ",message)
-		const preSets={"upgraded":"API Token Expired, come back soon?","incorrect":"Username or Password is Incorrect","invalid":"Username or Password is Incorrect","load failed":"Network Error","failed to fetch":"Network Error:Try Again Later","socket":"Network Error"};
+		const preSets={"upgraded":"API Token Expired, come back soon?","incorrect":"Username or Password is Incorrect","invalid":"Username or Password is Incorrect","load failed":"Network Error","failed to fetch":"Network Error: Try Again Later","socket":"Network Error","upstream error":"Synergy Unavailable (405): Try Again Later"};
 		for(let key in preSets){
 			if(message.toLowerCase().includes(key)){var message=preSets[key];break}
 		}
@@ -626,7 +627,7 @@ const logout = async () => {
 	// }, []);
 
 	if (gated) return (
-		<Flowbite>
+		<Flowbite theme={{ usePreferences: false }}>
 			<Head><title>Grade Durian</title></Head>
 			<div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
 				<div className="absolute top-4 right-4">
@@ -656,9 +657,9 @@ const logout = async () => {
 	);
 
 	return (
-		<Flowbite>
+		<Flowbite theme={{ usePreferences: false }}>
 			<Head>
-				<title>{siteTitle || "Grade Durian"}</title>
+				<title>{(!noShowNav.includes(router.pathname) && siteTitle) || "Grade Durian"}</title>
 				</Head>
 			<div className="fixed p-5 z-[60]">
 				{toasts.map(({ title, type }, i) => (
@@ -683,7 +684,7 @@ const logout = async () => {
 			</div>
 		
 			<div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} siteTitle={siteTitle} />
+				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} siteTitle={noShowNav.includes(router.pathname) ? "" : siteTitle} />
 				<div>
 					{(!client || noShowSidebar.includes(router.pathname)) && (
 					<MotionConfig transition={springConfig}>

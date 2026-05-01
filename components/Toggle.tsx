@@ -32,8 +32,11 @@ export default function DarkModeToggle(){
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    Cookies.set('theme',!isDarkMode? "dark":"light",{expires:365});
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    const val = next ? 'dark' : 'light';
+    Cookies.set('theme', val, {expires:365});
+    localStorage.setItem('theme', val);
   };
 
   return (

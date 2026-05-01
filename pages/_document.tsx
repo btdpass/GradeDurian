@@ -15,6 +15,7 @@ export default class MyDocument extends Document {
 							try {
 								var theme = document.cookie.match(/theme=([^;]+)/);
 								var isDark = theme ? theme[1] === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+								localStorage.setItem('theme', isDark ? 'dark' : 'light');
 								if (isDark) document.documentElement.classList.add('dark');
 								document.documentElement.style.backgroundColor = isDark ? '#111827' : '#f9fafb';
 							} catch(e) {}
