@@ -29,6 +29,7 @@ interface Toast {
 
 const noShowNav = ["/login", "/", "/privacy/ios","/privacy/web", "/letter","/faq"];
 const noShowSidebar = ["/login", "/"];
+const noCustomTheme = [...noShowNav];
 
 function LogoButton({ openInFrame, basePath, logoSrc }: { openInFrame: () => void, basePath: string, logoSrc: string }) {
 	const rotation = useMotionValue(0);
@@ -97,10 +98,17 @@ function MyApp({ Component, pageProps }) {
 		if (typeof window !== 'undefined') return localStorage.getItem('siteTitle') ?? "";
 		return "";
 	});
+	const [customLogo,setCustomLogo]=useState<string>(() => {
+		if (typeof window !== 'undefined') return localStorage.getItem('customLogo') ?? "";
+		return "";
+	});
+	useEffect(() => {
+		if (customLogo && !hideCustomTheme) { setLogoSrc(customLogo); updateFavicon(customLogo); }
+	}, [customLogo, router.pathname, client]);
 	const prevSiteTitleRef = useRef("");
 	useEffect(() => {
 		const APP_NAME = "Grade Durian";
-		const isLoggedInPage = !noShowNav.includes(router.pathname);
+		const isLoggedInPage = !hideCustomTheme;
 		const prev = prevSiteTitleRef.current;
 		const applyTitle = () => {
 			let t = document.title;
@@ -120,9 +128,15 @@ function MyApp({ Component, pageProps }) {
 		});
 		observer.observe(titleEl, { childList: true });
 		return () => observer.disconnect();
-	}, [siteTitle, router.pathname]);
+	}, [siteTitle, router.pathname, client]);
 	const [originalGradingScale,setOriginalGradingScale]=useState<any>(null);
-	const [logoSrc, setLogoSrc] = useState<string>(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`);
+	const [logoSrc, setLogoSrc] = useState<string>(() => {
+		if (typeof window !== 'undefined') {
+			const saved = localStorage.getItem('customLogo');
+			if (saved) return saved;
+		}
+		return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`;
+	});
 	const [studentInfo, setStudentInfo] = useState(undefined);
 	const [toasts, setToasts] = useState<Toast[]>([]);
 	const [cacheLoading,setCacheLoading]=useState(true)
@@ -139,12 +153,14 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
+	const hideCustomTheme = noCustomTheme.includes(router.pathname) || !!(client as any)?.guest;
 	const [gated, setGated] = useState(true); // url masking
 	const logoColorApplied = useRef(false);
 
-	const applyColor = (hex: string) => {
+	const applyColor = (hex: string, ignoreCustomLogo = false) => {
 		applyPalette(hex);
 		logoColorApplied.current = true;
+		if (!ignoreCustomLogo && customLogo) return;
 		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
 		if (hex === '#f43f5e') {
 			setLogoSrc(`${base}/assets/logo1.png`);
@@ -161,10 +177,10 @@ function MyApp({ Component, pageProps }) {
 	};
 
 	useEffect(() => {
-		if (router.pathname === '/' || router.pathname === '/login') {
+		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+		if (router.pathname === '/' || router.pathname === '/login' || (client as any)?.guest) {
 			applyPalette(DEFAULT_PRIMARY);
-			const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
-			recolorImage(`${base}/assets/logo.png`, DEFAULT_PRIMARY).then(url => setLogoSrc(url));
+			setLogoSrc(`${base}/assets/logo.png`);
 			updateFavicon(`${base}/favicon.ico`);
 			return;
 		}
@@ -177,7 +193,7 @@ function MyApp({ Component, pageProps }) {
 				applyColor(cached);
 			}
 		}
-	}, [router.pathname, gated]);
+	}, [router.pathname, gated, client]);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -357,7 +373,8 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
 				if (saved.highlightColor !== undefined) setHighlightColor(saved.highlightColor ?? null);
 				if (saved.siteTitle !== undefined) setSiteTitle(saved.siteTitle ?? "");
-				if (saved.primaryColor) { applyPalette(saved.primaryColor, true); applyColor(saved.primaryColor); }
+				if (saved.customLogo !== undefined) { setCustomLogo(saved.customLogo ?? ""); localStorage.setItem('customLogo', saved.customLogo ?? ""); }
+				if (saved.primaryColor) { applyPalette(saved.primaryColor, true); if (!saved.customLogo) applyColor(saved.primaryColor); }
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
 						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor" || key === "highlightColor") continue;
@@ -659,7 +676,7 @@ const logout = async () => {
 	return (
 		<Flowbite theme={{ usePreferences: false }}>
 			<Head>
-				<title>{(!noShowNav.includes(router.pathname) && siteTitle) || "Grade Durian"}</title>
+				<title>{(!hideCustomTheme && siteTitle) || "Grade Durian"}</title>
 				</Head>
 			<div className="fixed p-5 z-[60]">
 				{toasts.map(({ title, type }, i) => (
@@ -684,7 +701,7 @@ const logout = async () => {
 			</div>
 		
 			<div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} siteTitle={noShowNav.includes(router.pathname) ? "" : siteTitle} />
+				<Topbar studentInfo={noShowSidebar.includes(router.pathname) ? undefined : studentInfo} logout={logout} client={noShowSidebar.includes(router.pathname) ? undefined : client} logoSrc={logoSrc} siteTitle={hideCustomTheme ? "" : siteTitle} />
 				<div>
 					{(!client || noShowSidebar.includes(router.pathname)) && (
 					<MotionConfig transition={springConfig}>
@@ -723,6 +740,8 @@ const logout = async () => {
 								setShowCountdown={setShowCountdown}
 								siteTitle={siteTitle}
 								setSiteTitle={setSiteTitle}
+								customLogo={customLogo}
+								setCustomLogo={setCustomLogo}
 								originalGradingScale={originalGradingScale}
 								onColorPreview={applyColor}
 
@@ -780,6 +799,8 @@ const logout = async () => {
 											setShowCountdown={setShowCountdown}
 								siteTitle={siteTitle}
 								setSiteTitle={setSiteTitle}
+								customLogo={customLogo}
+								setCustomLogo={setCustomLogo}
 								originalGradingScale={originalGradingScale}
 								onColorPreview={applyColor}
 									/>
@@ -829,6 +850,8 @@ const logout = async () => {
 											setShowCountdown={setShowCountdown}
 								siteTitle={siteTitle}
 								setSiteTitle={setSiteTitle}
+								customLogo={customLogo}
+								setCustomLogo={setCustomLogo}
 								originalGradingScale={originalGradingScale}
 								onColorPreview={applyColor}
 									/>

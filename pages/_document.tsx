@@ -5,7 +5,10 @@ export default class MyDocument extends Document {
 		return (
 			<Html>
 				<Head>
-          <link rel="manifest" href={`${process.env.NEXT_PUBLIC_BASE_PATH}/manifest.json`} />
+					<link rel="preconnect" href="https://fonts.googleapis.com" />
+					<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+					<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+					<link rel="manifest" href={`${process.env.NEXT_PUBLIC_BASE_PATH}/manifest.json`} />
 					<link rel="icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH}/favicon.ico`} />
 					<link rel="apple-touch-icon" href={`${process.env.NEXT_PUBLIC_BASE_PATH}/assets/icon.png`} />
 				</Head>

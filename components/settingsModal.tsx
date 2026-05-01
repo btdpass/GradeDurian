@@ -28,8 +28,10 @@ interface props{
   setHighlightColor:(v:string|null)=>void;
   siteTitle:string;
   setSiteTitle:(v:string)=>void;
+  customLogo:string;
+  setCustomLogo:(v:string)=>void;
   originalGradingScale:any;
-  onColorPreview?:(hex:string)=>void;
+  onColorPreview?:(hex:string, ignoreCustomLogo?:boolean)=>void;
 }
 
 
@@ -37,7 +39,7 @@ interface props{
 
 
 
-export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,originalGradingScale,onColorPreview}:props){
+export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview}:props){
           const settings= grades?.[0]?.settings
   const course = index==-1 ? {courseID:"default",settings:settings.default,name:"",identifier:"default"} : grades?.[period]?.courses[index];
         const courseSettings=course.settings
@@ -58,16 +60,17 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         const [pendingSiteTitle, setPendingSiteTitle] = useState<string>((settings as any).siteTitle ?? "")
         const originalDefault = useRef(structuredClone(settings.default))
         const titleInputRef = useRef<HTMLInputElement>(null)
+        const logoInputRef = useRef<HTMLInputElement>(null)
         const [colorOpen, setColorOpen] = useState(false)
         const [titleOpen, setTitleOpen] = useState(false)
         const currentView=viewStack.at(-1)
 
 
         const animationPropsHome = {
-          // initial: { x: "100%", opacity: 0 },
-          // animate: { x: 0, opacity: 1 },
-          // exit: { x: "-100%", opacity: 0 },
-          // transition: { duration: 0.15 },
+          initial: { x: "100%", opacity: 0 },
+          animate: { x: 0, opacity: 1 },
+          exit: { x: "-100%", opacity: 0 },
+          transition: { duration: 0.15 },
         };
 
         const animationPropsPage=animationPropsHome //for now
@@ -232,7 +235,7 @@ async function saveAndApply(tempSettings){
 
 
         	for(let key in tempSettings){
-		        if(key=="default"||key=="mode"||key=="showCountdown"||key=="primaryColor"||key=="highlightColor"||key=="siteTitle"){continue}
+		        if(key=="default"||key=="mode"||key=="showCountdown"||key=="primaryColor"||key=="highlightColor"||key=="siteTitle"||key=="customLogo"){continue}
 		        else{
 			    for(let prop in tempSettings[key]){
 				    if(tempSettings[key][prop]==false){
@@ -318,6 +321,8 @@ async function saveNew(){
     onColorPreview?.(pendingPrimaryColor)
     ;(tempSettings as any).siteTitle = pendingSiteTitle
     setSiteTitle(pendingSiteTitle)
+    localStorage.setItem('customLogo', customLogo)
+    ;(tempSettings as any).customLogo = customLogo
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
@@ -327,7 +332,8 @@ async function saveNew(){
       setRounding(ham.rounding)
       setFinals(ham.finals)
       setGrades(tempGrades)
-      setShowModal(false)}
+      setShowModal(false)
+      setViewStack(["home"])}
     
     else{
         createError("Failed to sync settings with server, try again?")
@@ -343,7 +349,7 @@ async function saveNew(){
 
 
 async function resetAllClasses(){
-  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:pendingPrimaryColor,highlightColor:pendingHighlightColor,siteTitle:pendingSiteTitle}
+  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:pendingPrimaryColor,highlightColor:pendingHighlightColor,siteTitle:pendingSiteTitle,customLogo:customLogo}
   const tempGrades=await saveAndApply(tempSettings)
   if(tempGrades){
   setShowModal(false)}
@@ -461,7 +467,7 @@ return(
 {letterScale!=undefined ? (
 <Modal 
 show={showModal}
-onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setShowModal(false); }}
+onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(localStorage.getItem('customLogo') ?? ""); setShowModal(false); setViewStack(["home"])}}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
@@ -1495,18 +1501,24 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           { label: 'Durian', color: DEFAULT_PRIMARY, title: 'Grade Durian', msg: "Default" },
           { label: 'Melon', color: '#f43f5e', title: 'Grade Melon', msg: "Legacy"},
         ];
-        const isCustom = !presets.some(p => p.color === pendingPrimaryColor && p.title === pendingSiteTitle);
-        const selected = (color: string, title: string) => pendingPrimaryColor === color && pendingSiteTitle === title;
+        const selected = (color: string, title: string) => pendingPrimaryColor === color && pendingSiteTitle === title && !customLogo;
+        const isCustom = !presets.some(p => selected(p.color, p.title));
         const rowClass = (active: boolean) => `flex items-center justify-between p-3 rounded-lg border ${active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`;
         return (
           <div className="flex flex-col gap-3">
             {presets.map(({ label, color, title, msg }: any) => (
-              <button key={color} onClick={() => { setPendingPrimaryColor(color); applyPalette(color); onColorPreview?.(color); setPendingSiteTitle(title); setSiteTitle(title); }} className={rowClass(selected(color, title))}>
+              <button key={color} onClick={() => {
+                setPendingPrimaryColor(color);
+                setCustomLogo("");
+                onColorPreview?.(color, true);
+                setPendingSiteTitle(title);
+                setSiteTitle(title);
+              }} className={rowClass(selected(color, title))}>
                 <p className="dark:text-white font-semibold">{label}{<span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">{msg}</span>}</p>
                 <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: color}} />
               </button>
             ))}
-            <button onClick={() => setViewStack(["color", "customtheme"])} className={`${rowClass(isCustom)}`}>
+            <button onClick={() => { setViewStack(["color", "customtheme"]); const saved = localStorage.getItem('customLogo') ?? ""; setCustomLogo(saved); onColorPreview?.(pendingPrimaryColor); }} className={`${rowClass(isCustom)}`}>
               <div className="flex items-center gap-1.5 dark:text-white font-semibold">
                 Custom
                 {/* <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" /> */}
@@ -1570,6 +1582,42 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
             </div>
           )}
         </div>
+
+        <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] cursor-pointer">
+          <div className="flex items-center gap-1.5">
+            <p className="dark:text-white font-semibold">Logo</p>
+            <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
+          </div>
+          <div className="flex items-center gap-2">
+            {customLogo
+              ? <>
+                  <img src={customLogo} className="w-6 h-6 rounded object-contain" />
+                  <button type="button" onClick={(e) => { e.preventDefault(); setCustomLogo(""); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs">✕</button>
+                </>
+              : <span className="text-sm text-gray-400 dark:text-gray-500">Default</span>
+            }
+            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              e.target.value = "";
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                  const MAX = 512;
+                  const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+                  const canvas = document.createElement('canvas');
+                  canvas.width = Math.round(img.width * scale);
+                  canvas.height = Math.round(img.height * scale);
+                  canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+                  setCustomLogo(canvas.toDataURL('image/webp', 0.85));
+                };
+                img.src = ev.target?.result as string;
+              };
+              reader.readAsDataURL(file);
+            }} />
+          </div>
+        </label>
       </div>
     </motion.div>
   }
@@ -1646,7 +1694,9 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY)
         onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY)
         setSiteTitle((settings as any).siteTitle ?? "")
+        setCustomLogo(localStorage.getItem('customLogo') ?? "")
         setShowModal(false)
+        setViewStack(["home"])
       }}
       >Cancel</button>
 
