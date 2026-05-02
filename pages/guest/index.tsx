@@ -268,6 +268,7 @@ export default function Grades({
 				customLogo={customLogo}
 				setCustomLogo={setCustomLogo}
 				originalGradingScale={originalGradingScale}
+				onColorPreview={onColorPreview}
 			/></ClientOnly>
 
 							{!loading && schoolsList && <div className="flex justify-between flex-shrink w-full pb-3 md:-mt-9">

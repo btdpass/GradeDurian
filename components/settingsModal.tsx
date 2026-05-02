@@ -84,7 +84,7 @@ useEffect(()=>{
   setPendingShowCountdown(showCountdown)
   setPendingHighlightColor((settings as any).highlightColor ?? null)
   setPendingPrimaryColor((settings as any).primaryColor || DEFAULT_PRIMARY)
-  setPendingSiteTitle((settings as any).siteTitle ?? "")
+  setPendingSiteTitle((settings as any).siteTitle ?? siteTitle ?? "")
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
   setFinals(course.settings.finals)
@@ -317,17 +317,16 @@ async function saveNew(){
     ;(tempSettings as any).highlightColor = pendingHighlightColor
     setHighlightColor(pendingHighlightColor)
     ;(tempSettings as any).primaryColor = pendingPrimaryColor
-    applyPalette(pendingPrimaryColor, true)
+    applyPalette(pendingPrimaryColor)
     onColorPreview?.(pendingPrimaryColor)
     ;(tempSettings as any).siteTitle = pendingSiteTitle
     setSiteTitle(pendingSiteTitle)
-    localStorage.setItem('customLogo', customLogo)
     ;(tempSettings as any).customLogo = customLogo
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
       const ham=index!=-1 ? tempGrades[period].courses[index].settings : tempSettings.default
-      localStorage.removeItem("xmlCache")
+      if (!(client as any)?.guest) localStorage.removeItem("xmlCache")
       setLetterScale(ham.letterScale)
       setRounding(ham.rounding)
       setFinals(ham.finals)
@@ -467,7 +466,7 @@ return(
 {letterScale!=undefined ? (
 <Modal 
 show={showModal}
-onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(localStorage.getItem('customLogo') ?? ""); setShowModal(false); setViewStack(["home"])}}
+onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo((settings as any).customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
@@ -1501,7 +1500,8 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           { label: 'Durian', color: DEFAULT_PRIMARY, title: 'Grade Durian', msg: "Default" },
           { label: 'Melon', color: '#f43f5e', title: 'Grade Melon', msg: "Legacy"},
         ];
-        const selected = (color: string, title: string) => pendingPrimaryColor === color && pendingSiteTitle === title && !customLogo;
+        const effectiveTitle = pendingSiteTitle || "Grade Durian";
+        const selected = (color: string, title: string) => pendingPrimaryColor === color && effectiveTitle === title && !customLogo;
         const isCustom = !presets.some(p => selected(p.color, p.title));
         const rowClass = (active: boolean) => `flex items-center justify-between p-3 rounded-lg border ${active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`;
         return (
@@ -1518,7 +1518,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
                 <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: color}} />
               </button>
             ))}
-            <button onClick={() => { setViewStack(["color", "customtheme"]); const saved = localStorage.getItem('customLogo') ?? ""; setCustomLogo(saved); onColorPreview?.(pendingPrimaryColor); }} className={`${rowClass(isCustom)}`}>
+            <button onClick={() => { setViewStack(["color", "customtheme"]); const saved = (settings as any).customLogo ?? ""; setCustomLogo(saved); onColorPreview?.(pendingPrimaryColor); }} className={`${rowClass(isCustom)}`}>
               <div className="flex items-center gap-1.5 dark:text-white font-semibold">
                 Custom
                 {/* <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" /> */}
@@ -1694,7 +1694,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY)
         onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY)
         setSiteTitle((settings as any).siteTitle ?? "")
-        setCustomLogo(localStorage.getItem('customLogo') ?? "")
+        setCustomLogo((settings as any).customLogo ?? "")
         setShowModal(false)
         setViewStack(["home"])
       }}

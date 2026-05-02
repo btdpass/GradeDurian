@@ -94,14 +94,8 @@ function MyApp({ Component, pageProps }) {
 	const [settingsModal,setSettingsModal]=useState<boolean>(false);
 	const [showCountdown,setShowCountdown]=useState<boolean>(true);
 	const [highlightColor,setHighlightColor]=useState<string|null>(null);
-	const [siteTitle,setSiteTitle]=useState<string>(() => {
-		if (typeof window !== 'undefined') return localStorage.getItem('siteTitle') ?? "";
-		return "";
-	});
-	const [customLogo,setCustomLogo]=useState<string>(() => {
-		if (typeof window !== 'undefined') return localStorage.getItem('customLogo') ?? "";
-		return "";
-	});
+	const [siteTitle,setSiteTitle]=useState<string>("");
+	const [customLogo,setCustomLogo]=useState<string>("");
 	useEffect(() => {
 		if (customLogo && !hideCustomTheme) { setLogoSrc(customLogo); updateFavicon(customLogo); }
 	}, [customLogo, router.pathname, client]);
@@ -117,7 +111,6 @@ function MyApp({ Component, pageProps }) {
 			if (t !== document.title) document.title = t;
 		};
 		prevSiteTitleRef.current = isLoggedInPage ? (siteTitle || "") : "";
-		localStorage.setItem('siteTitle', siteTitle || "");
 		applyTitle();
 		if (!isLoggedInPage || !siteTitle || siteTitle === APP_NAME) return;
 		const titleEl = document.querySelector('title');
@@ -130,13 +123,7 @@ function MyApp({ Component, pageProps }) {
 		return () => observer.disconnect();
 	}, [siteTitle, router.pathname, client]);
 	const [originalGradingScale,setOriginalGradingScale]=useState<any>(null);
-	const [logoSrc, setLogoSrc] = useState<string>(() => {
-		if (typeof window !== 'undefined') {
-			const saved = localStorage.getItem('customLogo');
-			if (saved) return saved;
-		}
-		return `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`;
-	});
+	const [logoSrc, setLogoSrc] = useState<string>(`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/logo.png`);
 	const [studentInfo, setStudentInfo] = useState(undefined);
 	const [toasts, setToasts] = useState<Toast[]>([]);
 	const [cacheLoading,setCacheLoading]=useState(true)
@@ -153,7 +140,7 @@ function MyApp({ Component, pageProps }) {
 	const [schoolIndex,setSchoolIndex]=useState(0)
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
-	const hideCustomTheme = noCustomTheme.includes(router.pathname) || !!(client as any)?.guest;
+	const hideCustomTheme = noCustomTheme.includes(router.pathname);
 	const [gated, setGated] = useState(true); // url masking
 	const logoColorApplied = useRef(false);
 
@@ -178,22 +165,20 @@ function MyApp({ Component, pageProps }) {
 
 	useEffect(() => {
 		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
-		if (router.pathname === '/' || router.pathname === '/login' || (client as any)?.guest) {
+		if (router.pathname === '/' || router.pathname === '/login') {
 			applyPalette(DEFAULT_PRIMARY);
 			setLogoSrc(`${base}/assets/logo.png`);
 			updateFavicon(`${base}/favicon.ico`);
 			return;
 		}
-		if (gated) return;
-		const cached = localStorage.getItem('primaryColor');
-		if (cached) {
-			applyPalette(cached);
-			if (!logoColorApplied.current) {
-				logoColorApplied.current = true;
-				applyColor(cached);
-			}
-		}
+		if (gated || (client as any)?.guest) return;
 	}, [router.pathname, gated, client]);
+
+	useEffect(() => {
+		localStorage.removeItem('customLogo');
+		localStorage.removeItem('siteTitle');
+		localStorage.removeItem('primaryColor');
+	}, []);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -227,6 +212,13 @@ function MyApp({ Component, pageProps }) {
 
 
 	function guestLogin(){
+		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+		applyPalette(DEFAULT_PRIMARY);
+		logoColorApplied.current = false;
+		setLogoSrc(`${base}/assets/logo.png`);
+		updateFavicon(`${base}/favicon.ico`);
+		setCustomLogo("");
+		setSiteTitle("");
 		//@ts-expect-error
 		setClient({guest:true,loadedAttendance:attendance,loadedSchedule:schedule,loadedDocuments:[{file:{date:new Date(),type:"Sample"},comment:"Sample Document",get:()=>{return [{base64:sampleDocument}]	}}]})
 		setGrades(sample)
@@ -250,6 +242,8 @@ function MyApp({ Component, pageProps }) {
 		await setLoading(true);
 		localStorage.removeItem("infoCache")
 		localStorage.removeItem("xmlCache2")
+		setCustomLogo("");
+		setSiteTitle("");
 
 		const encryptedPass=getCourseSettings(username,password,encrypted,url);
 
@@ -368,13 +362,20 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ url: fetchedClient.district, userHash: fetchedClient.username })
 				}).then(r => r.json()).then(result => {
-					if (!result.status) return;
+					if (!result.status) {
+						fetch(apiUrl + "/setSettings", {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ url: fetchedClient.district, userHash: fetchedClient.username, settings: { ...freshCache[0].settings, showCountdown: true, primaryColor: null, highlightColor: null, siteTitle: "", customLogo: "" } })
+						}).catch(() => {});
+						return;
+					}
 					const saved = result.settings;
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
 				if (saved.highlightColor !== undefined) setHighlightColor(saved.highlightColor ?? null);
 				if (saved.siteTitle !== undefined) setSiteTitle(saved.siteTitle ?? "");
-				if (saved.customLogo !== undefined) { setCustomLogo(saved.customLogo ?? ""); localStorage.setItem('customLogo', saved.customLogo ?? ""); }
-				if (saved.primaryColor) { applyPalette(saved.primaryColor, true); if (!saved.customLogo) applyColor(saved.primaryColor); }
+				if (saved.customLogo !== undefined) setCustomLogo(saved.customLogo ?? "");
+				if (saved.primaryColor) { applyPalette(saved.primaryColor); if (!saved.customLogo) applyColor(saved.primaryColor); }
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
 						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor" || key === "highlightColor") continue;
@@ -540,7 +541,7 @@ useEffect(()=>{
  
 
 	useEffect(()=>{ //Hook responsible for fetching studentInfo
-		if(client!==undefined&&studentInfo==undefined){
+		if(client!==undefined&&studentInfo==undefined&&!(client as any)?.guest){
 			if(localStorage.getItem("infoCache")!=undefined){ //temporarily re-enabling infoCache
 				const cache=JSON.parse(localStorage.getItem("infoCache"));
 				if(cache.user==client.username){

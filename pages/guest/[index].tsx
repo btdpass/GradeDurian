@@ -416,6 +416,7 @@ export default function Grades({
 				customLogo={customLogo}
 				setCustomLogo={setCustomLogo}
 				originalGradingScale={originalGradingScale}
+				onColorPreview={onColorPreview}
 			/></ClientOnly>
 
 			<ClientOnly><OptimizationModal
