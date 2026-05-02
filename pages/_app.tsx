@@ -47,7 +47,7 @@ function LogoButton({ openInFrame, basePath, logoSrc }: { openInFrame: () => voi
 		isHovered.current = true;
 		setHovered(true);
 		animate(scaleVal, 1.15, { duration: 0.2 });
-		await animate(rotation, rotation.get() + 180, { duration: 0.8, ease: "easeInOut" });
+		await animate(rotation, rotation.get() + 360, { duration: 0.8, ease: "easeInOut" });
 	};
 
 	const handleHoverEnd = () => {
@@ -70,7 +70,7 @@ function LogoButton({ openInFrame, basePath, logoSrc }: { openInFrame: () => voi
 				onHoverEnd={handleHoverEnd}
 			>
 				<motion.div
-					animate={{ scale: hovered ? 1 : [0.91, 1.12, 0.91], opacity: hovered ? 0 : 0.25 }}
+					animate={{ scale: hovered ? 1 : [0.85, 1.0625, 0.85], opacity: hovered ? 0 : 0.25 }}
 					transition={{ scale: { duration: 2, repeat: hovered ? 0 : Infinity, ease: "easeInOut" }, opacity: { duration: 0.4 } }}
 					className="absolute inset-0 rounded-full bg-primary-400"
 				/>
