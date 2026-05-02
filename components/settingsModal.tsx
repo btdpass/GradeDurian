@@ -63,6 +63,7 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         const logoInputRef = useRef<HTMLInputElement>(null)
         const [colorOpen, setColorOpen] = useState(false)
         const [titleOpen, setTitleOpen] = useState(false)
+        //const [customLogo, setCustomLogo] = useState<string>("")
         const currentView=viewStack.at(-1)
 
 
@@ -84,7 +85,7 @@ useEffect(()=>{
   setPendingShowCountdown(showCountdown)
   setPendingHighlightColor((settings as any).highlightColor ?? null)
   setPendingPrimaryColor((settings as any).primaryColor || DEFAULT_PRIMARY)
-  setPendingSiteTitle((settings as any).siteTitle ?? siteTitle ?? "")
+  setPendingSiteTitle((settings as any).siteTitle ?? "")
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
   setFinals(course.settings.finals)
@@ -317,16 +318,17 @@ async function saveNew(){
     ;(tempSettings as any).highlightColor = pendingHighlightColor
     setHighlightColor(pendingHighlightColor)
     ;(tempSettings as any).primaryColor = pendingPrimaryColor
-    applyPalette(pendingPrimaryColor)
+    applyPalette(pendingPrimaryColor, true)
     onColorPreview?.(pendingPrimaryColor)
     ;(tempSettings as any).siteTitle = pendingSiteTitle
     setSiteTitle(pendingSiteTitle)
+    //localStorage.setItem('customLogo', customLogo)
     ;(tempSettings as any).customLogo = customLogo
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
       const ham=index!=-1 ? tempGrades[period].courses[index].settings : tempSettings.default
-      if (!(client as any)?.guest) localStorage.removeItem("xmlCache")
+      localStorage.removeItem("xmlCache")
       setLetterScale(ham.letterScale)
       setRounding(ham.rounding)
       setFinals(ham.finals)
@@ -466,7 +468,7 @@ return(
 {letterScale!=undefined ? (
 <Modal 
 show={showModal}
-onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo((settings as any).customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
+onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
@@ -1500,8 +1502,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           { label: 'Durian', color: DEFAULT_PRIMARY, title: 'Grade Durian', msg: "Default" },
           { label: 'Melon', color: '#f43f5e', title: 'Grade Melon', msg: "Legacy"},
         ];
-        const effectiveTitle = pendingSiteTitle || "Grade Durian";
-        const selected = (color: string, title: string) => pendingPrimaryColor === color && effectiveTitle === title && !customLogo;
+        const selected = (color: string, title: string) => pendingPrimaryColor === color && pendingSiteTitle === title;
         const isCustom = !presets.some(p => selected(p.color, p.title));
         const rowClass = (active: boolean) => `flex items-center justify-between p-3 rounded-lg border ${active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`;
         return (
@@ -1518,7 +1519,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
                 <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: color}} />
               </button>
             ))}
-            <button onClick={() => { setViewStack(["color", "customtheme"]); const saved = (settings as any).customLogo ?? ""; setCustomLogo(saved); onColorPreview?.(pendingPrimaryColor); }} className={`${rowClass(isCustom)}`}>
+            <button onClick={() => { setViewStack(["color", "customtheme"]); const saved = customLogo ?? ""; setCustomLogo(saved); onColorPreview?.(pendingPrimaryColor); }} className={`${rowClass(isCustom)}`}>
               <div className="flex items-center gap-1.5 dark:text-white font-semibold">
                 Custom
                 {/* <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" /> */}
@@ -1589,7 +1590,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
             <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
           </div>
           <div className="flex items-center gap-2">
-            {customLogo
+            {customLogo && customLogo.length > 0
               ? <>
                   <img src={customLogo} className="w-6 h-6 rounded object-contain" />
                   <button type="button" onClick={(e) => { e.preventDefault(); setCustomLogo(""); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs">✕</button>
@@ -1599,22 +1600,10 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
             <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              e.target.value = "";
               const reader = new FileReader();
-              reader.onload = (ev) => {
-                const img = new Image();
-                img.onload = () => {
-                  const MAX = 512;
-                  const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-                  const canvas = document.createElement('canvas');
-                  canvas.width = Math.round(img.width * scale);
-                  canvas.height = Math.round(img.height * scale);
-                  canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-                  setCustomLogo(canvas.toDataURL('image/webp', 0.85));
-                };
-                img.src = ev.target?.result as string;
-              };
+              reader.onload = (ev) => setCustomLogo(ev.target?.result as string);
               reader.readAsDataURL(file);
+              e.target.value = "";
             }} />
           </div>
         </label>
@@ -1694,7 +1683,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY)
         onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY)
         setSiteTitle((settings as any).siteTitle ?? "")
-        setCustomLogo((settings as any).customLogo ?? "")
+        setCustomLogo(customLogo ?? "")
         setShowModal(false)
         setViewStack(["home"])
       }}

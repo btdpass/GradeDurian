@@ -174,11 +174,11 @@ function MyApp({ Component, pageProps }) {
 		if (gated || (client as any)?.guest) return;
 	}, [router.pathname, gated, client]);
 
-	useEffect(() => {
-		localStorage.removeItem('customLogo');
-		localStorage.removeItem('siteTitle');
-		localStorage.removeItem('primaryColor');
-	}, []);
+	// useEffect(() => {
+	// 	localStorage.removeItem('customLogo');
+	// 	localStorage.removeItem('siteTitle');
+	// 	localStorage.removeItem('primaryColor');
+	// }, []);
 
 	useEffect(() => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -633,16 +633,16 @@ const logout = async () => {
 
 };
 
-	// useEffect(() => {
-	// 	let username = localStorage.getItem("username");
-	// 	let password = localStorage.getItem("password");
-	// 	let remember = localStorage.getItem("remember");
-	// 	let storedDistrictURL = localStorage.getItem("districtURL");
-	// 	storedDistrictURL && setDistrictURL(storedDistrictURL);
-	// 	if (remember === "true" && username && password && storedDistrictURL) {
-	// 		login(username, password, true, districtURL);
-	// 	}
-	// }, []);
+	useEffect(() => {
+		let username = localStorage.getItem("username");
+		let password = localStorage.getItem("password");
+		let remember = localStorage.getItem("remember");
+		let storedDistrictURL = localStorage.getItem("districtURL");
+		storedDistrictURL && setDistrictURL(storedDistrictURL);
+		if (remember === "true" && username && password && storedDistrictURL) {
+			login(username, password, true, districtURL);
+		}
+	}, []);
 
 	if (gated) return (
 		<Flowbite theme={{ usePreferences: false }}>
