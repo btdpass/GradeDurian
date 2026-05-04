@@ -18,6 +18,7 @@ import ClientOnly from "../../components/ClientOnly";
 import { motion } from "framer-motion";
 import { BsGearWideConnected } from "react-icons/bs";
 import SettingsModal from "../../components/settingsModal"
+import type { Theme } from "../_app";
 import StudentVue from "studentvue";
 import {getGradebooks} from "../../utils/soap"
 import { HiArrowCircleLeft, HiArrowCircleRight } from "react-icons/hi";
@@ -53,6 +54,9 @@ interface GradesProps {
 	setSiteTitle:(v:string)=>void;
 	originalGradingScale:any;
 	onColorPreview?:(hex:string, ignoreCustomLogo?:boolean)=>void;
+	themes?: Theme[];
+	setThemes?: (t: Theme[]) => void;
+	applyTheme?: (t: Theme) => void;
 }
 
 export default function Grades({
@@ -64,7 +68,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,guestLogin,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview
+	width,modalBg,setModalBg,setSettingsModal,settingsModal,schoolsList,setSchoolsList,schoolIndex,setSchoolIndex,guestLogin,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview,themes,setThemes,applyTheme
 }: GradesProps) {
 	const router = useRouter();
 	const [loading,setLoading]=useState(!Boolean(grades))
@@ -269,6 +273,9 @@ export default function Grades({
 				setCustomLogo={setCustomLogo}
 				originalGradingScale={originalGradingScale}
 				onColorPreview={onColorPreview}
+				themes={themes}
+				setThemes={setThemes}
+				applyTheme={applyTheme}
 			/></ClientOnly>
 
 							{!loading && schoolsList && <div className="flex justify-between flex-shrink w-full pb-3 md:-mt-9">

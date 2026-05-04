@@ -1,5 +1,9 @@
 import React,{useState,useEffect,useRef} from "react";
 import { applyPalette, DEFAULT_PRIMARY } from "../utils/colorPalette";
+import type { Theme } from "../pages/_app";
+import { Filter as BadWordsFilter } from "bad-words";
+
+const profanityFilter = new BadWordsFilter();
 import {Modal} from "flowbite-react"
 import { HiOutlineTrash,HiArrowCircleRight,HiArrowCircleLeft, HiArrowCircleDown, HiPencil } from "react-icons/hi";
 import { reCalculateAll,parseGrades,letterGradeColor, reCalculateCourse, toggleSemester, ordinalSuffix, Course} from "../utils/grades";
@@ -31,7 +35,10 @@ interface props{
   customLogo:string;
   setCustomLogo:(v:string)=>void;
   originalGradingScale:any;
-  onColorPreview?:(hex:string, ignoreCustomLogo?:boolean)=>void;
+  onColorPreview?: (hex: string, ignoreCustomLogo?: boolean, overrideLogo?: string) => void;
+  themes?: Theme[];
+  setThemes?: (t: Theme[]) => void;
+  applyTheme?: (t: Theme) => void;
 }
 
 
@@ -39,7 +46,12 @@ interface props{
 
 
 
-export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview}:props){
+const PRESET_THEMES_FALLBACK: Theme[] = [
+  { id: 'durian', name: 'Durian', primaryColor: DEFAULT_PRIMARY, siteTitle: 'Grade Durian', customLogo: '', active: true, preset: true },
+  { id: 'melon', name: 'Melon', primaryColor: '#f43f5e', siteTitle: 'Grade Melon', customLogo: '', active: false, preset: true },
+];
+
+export default function SettingsModal({client,index,showModal,setShowModal,grades,setGrades,createError,mp:period,isMediumOrLarger,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview,themes,setThemes,applyTheme}:props){
           const settings= grades?.[0]?.settings
   const course = index==-1 ? {courseID:"default",settings:settings.default,name:"",identifier:"default"} : grades?.[period]?.courses[index];
         const courseSettings=course.settings
@@ -56,8 +68,10 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         const [viewStack,setViewStack] = useState(["home"])
         const [pendingShowCountdown, setPendingShowCountdown] = useState(showCountdown)
         const [pendingHighlightColor, setPendingHighlightColor] = useState<string | null>((settings as any).highlightColor ?? null)
-        const [pendingPrimaryColor, setPendingPrimaryColor] = useState<string>((settings as any).primaryColor || DEFAULT_PRIMARY)
-        const [pendingSiteTitle, setPendingSiteTitle] = useState<string>((settings as any).siteTitle ?? "")
+        const [pendingThemes, setPendingThemes] = useState<Theme[]>(() => structuredClone(themes || PRESET_THEMES_FALLBACK))
+        const [themeEditorData, setThemeEditorData] = useState<{name:string, primaryColor:string, siteTitle:string, customLogo:string}>({name:'', primaryColor: DEFAULT_PRIMARY, siteTitle:'', customLogo:''})
+        const [themeEditorMode, setThemeEditorMode] = useState<'add'|'edit'>('add')
+        const [editingThemeId, setEditingThemeId] = useState<string|null>(null)
         const originalDefault = useRef(structuredClone(settings.default))
         const titleInputRef = useRef<HTMLInputElement>(null)
         const logoInputRef = useRef<HTMLInputElement>(null)
@@ -76,6 +90,65 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
 
         const animationPropsPage=animationPropsHome //for now
 
+        // settingsModal.tsx inside SettingsModal component
+
+        // const handleCancelAndReset = () => {
+        //     const savedSettings = (grades?.[0]?.settings as any) || {};
+        //     const savedColor = savedSettings.primaryColor || DEFAULT_PRIMARY;
+        //     const savedTitle = savedSettings.siteTitle || "Grade Durian";
+        //     const savedLogo = savedSettings.customLogo || "";
+
+        //     // 1. Revert local modal state
+        //     setPendingPrimaryColor(savedColor);
+        //     setPendingSiteTitle(savedTitle);
+        //     setCustomLogo(savedLogo);
+            
+        //     // 2. Revert App-level live previews
+        //     setSiteTitle(savedTitle);
+        //     onColorPreview?.(savedColor); // applyColor in _app will handle logo reversion
+            
+        //     // 3. Reset inputs
+        //     if (logoInputRef.current) logoInputRef.current.value = "";
+            
+        //     // 4. Close
+        //     setShowModal(false);
+        //     setViewStack(["home"]);
+        // };
+        // const handleCancelAndReset = () => {
+        //   const savedSettings = (grades?.[0]?.settings as any) || {};
+        //   const savedColor = savedSettings.primaryColor || DEFAULT_PRIMARY;
+        //   const savedTitle = savedSettings.siteTitle || "Grade Durian";
+        //   const savedLogo = savedSettings.customLogo || "";
+
+        //   // 1. Revert local modal state
+        //   setPendingPrimaryColor(savedColor);
+        //   setPendingSiteTitle(savedTitle);
+        //   setCustomLogo(savedLogo);
+          
+        //   // 2. Revert App-level live previews
+        //   setSiteTitle(savedTitle);
+          
+        //   // FIX: Pass the savedLogo directly so the app snaps back immediately
+        //   // Arguments: (color, ignoreState, logoOverride)
+        //   onColorPreview?.(String(savedColor), false, String(savedLogo));
+          
+        //   // 3. Reset inputs
+        //   if (logoInputRef.current) logoInputRef.current.value = "";
+          
+        //   // 4. Close
+        //   setShowModal(false);
+        //   setViewStack(["home"]);
+        // };
+        // settingsModal.tsx
+
+        const handleCancelAndReset = () => {
+            const savedActiveTheme = (themes || PRESET_THEMES_FALLBACK).find(t => t.active) || (themes || PRESET_THEMES_FALLBACK)[0];
+            if (savedActiveTheme) applyTheme?.(savedActiveTheme);
+            setPendingThemes(structuredClone(themes || PRESET_THEMES_FALLBACK));
+            setShowModal(false);
+            setViewStack(["home"]);
+        };
+        const previewTimeout = useRef<NodeJS.Timeout | null>(null);
 
 
 
@@ -84,8 +157,7 @@ useEffect(()=>{
   originalDefault.current = structuredClone(settings.default)
   setPendingShowCountdown(showCountdown)
   setPendingHighlightColor((settings as any).highlightColor ?? null)
-  setPendingPrimaryColor((settings as any).primaryColor || DEFAULT_PRIMARY)
-  setPendingSiteTitle((settings as any).siteTitle ?? "")
+  setPendingThemes(structuredClone(themes || PRESET_THEMES_FALLBACK))
   setLetterScale(index!=-1 ? (grades?.[period]?.courses[index].settings?.letterScale || undefined) : settings.default.letterScale)
   setRounding(index!=-1 ? (grades?.[period]?.courses[index].settings?.rounding || undefined) : settings.default.rounding)
   setFinals(course.settings.finals)
@@ -317,13 +389,13 @@ async function saveNew(){
     setShowCountdown(pendingShowCountdown)
     ;(tempSettings as any).highlightColor = pendingHighlightColor
     setHighlightColor(pendingHighlightColor)
-    ;(tempSettings as any).primaryColor = pendingPrimaryColor
-    applyPalette(pendingPrimaryColor, true)
-    onColorPreview?.(pendingPrimaryColor)
-    ;(tempSettings as any).siteTitle = pendingSiteTitle
-    setSiteTitle(pendingSiteTitle)
-    //localStorage.setItem('customLogo', customLogo)
-    ;(tempSettings as any).customLogo = customLogo
+    const activeThemeSave = pendingThemes.find(t => t.active) || pendingThemes[0];
+    ;(tempSettings as any).primaryColor = activeThemeSave.primaryColor
+    ;(tempSettings as any).siteTitle = activeThemeSave.siteTitle
+    ;(tempSettings as any).customLogo = activeThemeSave.customLogo
+    ;(tempSettings as any).themes = pendingThemes
+    setThemes?.(pendingThemes)
+    applyTheme?.(activeThemeSave)
 
     const tempGrades=await saveAndApply(tempSettings)
     if(tempGrades){
@@ -350,10 +422,14 @@ async function saveNew(){
 
 
 async function resetAllClasses(){
-  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:pendingPrimaryColor,highlightColor:pendingHighlightColor,siteTitle:pendingSiteTitle,customLogo:customLogo}
+  const activeThemeReset = pendingThemes.find(t => t.active) || pendingThemes[0];
+  const tempSettings:any={mode:settings.mode,"default":settings.default,showCountdown:pendingShowCountdown,primaryColor:activeThemeReset.primaryColor,highlightColor:pendingHighlightColor,siteTitle:activeThemeReset.siteTitle,customLogo:activeThemeReset.customLogo,themes:pendingThemes}
   const tempGrades=await saveAndApply(tempSettings)
   if(tempGrades){
-  setShowModal(false)}
+    setThemes?.(pendingThemes)
+    applyTheme?.(activeThemeReset)
+    setShowModal(false)
+  }
   else{
     createError("Failed to Sync Changes with Server")
   }
@@ -468,7 +544,8 @@ return(
 {letterScale!=undefined ? (
 <Modal 
 show={showModal}
-onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
+//onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
+onClose={() => handleCancelAndReset()}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
@@ -518,13 +595,13 @@ className="overflow-y-auto"
         {...animationPropsHome}
         key="sitecolor"
         style={{borderWidth:1}}
-        onClick={() => setViewStack(["color"])}
+        onClick={() => setViewStack(["themes"])}
         className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"
       >
         <div className="flex justify-between items-center">
           Site Theme
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}} />
+            <div className="w-5 h-5 rounded-full border border-gray-300" style={{backgroundColor: pendingThemes.find(t => t.active)?.primaryColor || DEFAULT_PRIMARY, transition: 'none'}} />
             <HiArrowCircleRight/>
           </div>
         </div>
@@ -1484,8 +1561,8 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
     </>
   }
 
-  {currentView === "color" &&
-    <motion.div {...animationPropsPage} key="colorPage">
+  {currentView === "themes" &&
+    <motion.div {...animationPropsPage} key="themesPage">
       <div className="flex justify-between items-center mb-4">
         <button
           style={{borderWidth:1, padding:5, borderRadius:12}}
@@ -1497,76 +1574,135 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Site Theme</p>}
       </div>
 
-      {(() => {
-        const presets = [
-          { label: 'Durian', color: DEFAULT_PRIMARY, title: 'Grade Durian', msg: "Default" },
-          { label: 'Melon', color: '#f43f5e', title: 'Grade Melon', msg: "Legacy"},
-        ];
-        const selected = (color: string, title: string) => pendingPrimaryColor === color && pendingSiteTitle === title;
-        const isCustom = !presets.some(p => selected(p.color, p.title));
-        const rowClass = (active: boolean) => `flex items-center justify-between p-3 rounded-lg border ${active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`;
-        return (
-          <div className="flex flex-col gap-3">
-            {presets.map(({ label, color, title, msg }: any) => (
-              <button key={color} onClick={() => {
-                setPendingPrimaryColor(color);
-                setCustomLogo("");
-                onColorPreview?.(color, true);
-                setPendingSiteTitle(title);
-                setSiteTitle(title);
-              }} className={rowClass(selected(color, title))}>
-                <p className="dark:text-white font-semibold">{label}{<span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-gray-400">{msg}</span>}</p>
-                <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: color}} />
-              </button>
-            ))}
-            <button onClick={() => { setViewStack(["color", "customtheme"]); const saved = customLogo ?? ""; setCustomLogo(saved); onColorPreview?.(pendingPrimaryColor); }} className={`${rowClass(isCustom)}`}>
-              <div className="flex items-center gap-1.5 dark:text-white font-semibold">
-                Custom
-                {/* <HiPencil size="0.85rem" className="text-gray-400 dark:text-gray-500" /> */}
-              </div>
-              <div className="flex items-center gap-2">
-                {/* <div className="w-6 h-6 rounded-full border border-gray-300" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}} /> */}
-                <HiArrowCircleRight className="dark:text-white" />
+      <div className="flex flex-col gap-2">
+        {pendingThemes.map((theme) => (
+          <div
+            key={theme.id}
+            className={`flex items-center justify-between p-3 rounded-lg border ${theme.active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`}
+          >
+            <button
+              className="flex items-center gap-2.5 flex-1 text-left"
+              onClick={() => {
+                setPendingThemes(prev => prev.map(t => ({...t, active: t.id === theme.id})));
+                applyTheme?.(theme);
+              }}
+            >
+              <div className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0" style={{backgroundColor: theme.primaryColor}} />
+              <div>
+                <p className="dark:text-white font-semibold text-sm">{theme.name}</p>
+                {theme.active && <p className="text-xs text-primary-500 dark:text-primary-400">Selected</p>}
               </div>
             </button>
+            {!theme.preset && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    setThemeEditorData({name: theme.name, primaryColor: theme.primaryColor, siteTitle: theme.siteTitle, customLogo: theme.customLogo});
+                    setThemeEditorMode('edit');
+                    setEditingThemeId(theme.id);
+                    setTitleOpen(false);
+                    setViewStack(prev => [...prev, "themeeditor"]);
+                  }}
+                  className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <HiPencil size="1rem" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (!window.confirm(`Delete theme "${theme.name}"?`)) return;
+                    const wasActive = theme.active;
+                    const newThemes = pendingThemes.filter(t => t.id !== theme.id);
+                    if (wasActive && newThemes.length > 0) {
+                      newThemes[0] = {...newThemes[0], active: true};
+                      applyTheme?.(newThemes[0]);
+                    }
+                    setPendingThemes(newThemes);
+                  }}
+                  className="p-1.5 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                >
+                  <HiOutlineTrash size="1rem" />
+                </button>
+              </div>
+            )}
           </div>
-        );
-      })()}
+        ))}
+      </div>
+
+      <button
+        className="mt-3 w-full p-2 text-sm bg-primary-500 dark:bg-primary-600 text-white rounded-lg hover:bg-primary-600 focus:outline-none"
+        onClick={() => {
+          const activePt = pendingThemes.find(t => t.active);
+          setThemeEditorData({name: '', primaryColor: activePt?.primaryColor || DEFAULT_PRIMARY, siteTitle: '', customLogo: ''});
+          setThemeEditorMode('add');
+          setEditingThemeId(null);
+          setTitleOpen(false);
+          setViewStack(prev => [...prev, "themeeditor"]);
+        }}
+      >
+        + Add Theme
+      </button>
     </motion.div>
   }
 
-  {currentView === "customtheme" &&
-    <motion.div {...animationPropsPage} key="customthemePage">
+  {currentView === "themeeditor" &&
+    <motion.div {...animationPropsPage} key="themeeditorPage">
       <div className="flex justify-between items-center mb-4">
         <button
           style={{borderWidth:1, padding:5, borderRadius:12}}
           className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
-          onClick={() => setViewStack(["color"])}
+          onClick={() => {
+            const revertTo = pendingThemes.find(t => t.active);
+            if (revertTo) applyTheme?.(revertTo);
+            setViewStack(["themes"]);
+          }}
         >
           <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
         </button>
-        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">Custom</p>}
+        {isMediumOrLarger && <p className="dark:text-white text-lg font-semibold">{themeEditorMode === 'add' ? 'Add Theme' : 'Edit Theme'}</p>}
       </div>
 
       <div className="flex flex-col gap-3">
+        <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] p-3">
+          <p className="dark:text-white font-semibold text-sm mb-1.5">Name</p>
+          <input
+            type="text"
+            placeholder="My Theme"
+            value={themeEditorData.name}
+            onChange={(e) => setThemeEditorData(prev => ({...prev, name: e.target.value}))}
+            className="w-full bg-white dark:bg-gray-700 text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 focus:outline-none focus:ring-0 focus:border-primary-500"
+          />
+        </div>
+
         <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] cursor-pointer">
           <div className="flex items-center gap-1.5">
-            <p className="dark:text-white font-semibold">Color</p>
+            <p className="dark:text-white font-semibold text-sm">Color</p>
             <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
           </div>
-          <div className="w-6 h-6 rounded border border-gray-300 overflow-hidden" style={{backgroundColor: pendingPrimaryColor, transition: 'none'}}>
-            <input type="color" className="opacity-0 w-full h-full cursor-pointer" value={pendingPrimaryColor} onChange={(e) => { setPendingPrimaryColor(e.target.value); applyPalette(e.target.value); }} />
+          <div className="w-6 h-6 rounded border border-gray-300 overflow-hidden" style={{backgroundColor: themeEditorData.primaryColor, transition: 'none'}}>
+            <input
+              type="color"
+              className="opacity-0 w-full h-full cursor-pointer"
+              value={themeEditorData.primaryColor}
+              onChange={(e) => {
+                const newColor = e.target.value;
+                setThemeEditorData(prev => ({...prev, primaryColor: newColor}));
+                if (previewTimeout.current) clearTimeout(previewTimeout.current);
+                previewTimeout.current = setTimeout(() => {
+                  applyTheme?.({...themeEditorData, primaryColor: newColor, id: editingThemeId || 'preview', active: true, preset: false});
+                }, 150);
+              }}
+            />
           </div>
         </label>
 
         <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] overflow-hidden">
           <button className="flex items-center justify-between p-3 w-full" onClick={() => { setTitleOpen(v => !v); if (!titleOpen) setTimeout(() => titleInputRef.current?.focus(), 50); }}>
             <div className="flex items-center gap-1.5">
-              <p className="dark:text-white font-semibold">Title</p>
+              <p className="dark:text-white font-semibold text-sm">Site Title</p>
               <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-400 dark:text-gray-500 truncate max-w-[8rem]">{pendingSiteTitle || "Grade Durian"}</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 truncate max-w-[8rem]">{themeEditorData.siteTitle || "Grade Durian"}</p>
               <HiArrowCircleDown className="dark:text-white flex-shrink-0" style={{transform: titleOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s'}} />
             </div>
           </button>
@@ -1576,9 +1712,12 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
                 ref={titleInputRef}
                 type="text"
                 placeholder="Grade Durian"
-                value={pendingSiteTitle}
-                onChange={(e) => { setPendingSiteTitle(e.target.value); setSiteTitle(e.target.value); }}
-                className="w-full bg-white dark:bg-gray-700 text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 focus:outline-none focus:ring-0 focus:border-primary-500 dark:focus:border-primary-500"
+                value={themeEditorData.siteTitle}
+                onChange={(e) => {
+                  setThemeEditorData(prev => ({...prev, siteTitle: e.target.value}));
+                  setSiteTitle?.(e.target.value);
+                }}
+                className="w-full bg-white dark:bg-gray-700 text-sm dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded border border-gray-300 dark:border-gray-600 px-2 py-1.5 focus:outline-none focus:ring-0 focus:border-primary-500"
               />
             </div>
           )}
@@ -1586,27 +1725,138 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
         <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] cursor-pointer">
           <div className="flex items-center gap-1.5">
-            <p className="dark:text-white font-semibold">Logo</p>
+            <p className="dark:text-white font-semibold text-sm">Logo</p>
             <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
           </div>
           <div className="flex items-center gap-2">
-            {customLogo && customLogo.length > 0
+            {themeEditorData.customLogo
               ? <>
-                  <img src={customLogo} className="w-6 h-6 rounded object-contain" />
-                  <button type="button" onClick={(e) => { e.preventDefault(); setCustomLogo(""); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs">✕</button>
+                  <img src={themeEditorData.customLogo} className="w-6 h-6 rounded object-contain" />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const updated = {...themeEditorData, customLogo: ''};
+                      setThemeEditorData(updated);
+                      applyTheme?.({...updated, id: editingThemeId || 'preview', active: true, preset: false});
+                    }}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs"
+                  >
+                    ✕
+                  </button>
                 </>
               : <span className="text-sm text-gray-400 dark:text-gray-500">Default</span>
             }
-            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              const reader = new FileReader();
-              reader.onload = (ev) => setCustomLogo(ev.target?.result as string);
-              reader.readAsDataURL(file);
-              e.target.value = "";
-            }} />
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  const img = new Image();
+                  img.src = event.target?.result as string;
+                  img.onload = () => {
+                    const MAX_SIZE = 512;
+                    const targetSize = (img.width > MAX_SIZE || img.height > MAX_SIZE) ? MAX_SIZE : Math.max(img.width, img.height);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = targetSize;
+                    canvas.height = targetSize;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx?.drawImage(img, 0, 0, targetSize, targetSize);
+                    const dataUrl = canvas.toDataURL('image/png');
+
+                    const colorCanvas = document.createElement('canvas');
+                    colorCanvas.width = 1;
+                    colorCanvas.height = 1;
+                    const colorCtx = colorCanvas.getContext('2d', { willReadFrequently: true });
+                    colorCtx?.drawImage(img, 0, 0, 1, 1);
+                    const rgba = colorCtx?.getImageData(0, 0, 1, 1).data;
+                    let newColor = themeEditorData.primaryColor;
+                    if (rgba) {
+                      newColor = "#" + [rgba[0], rgba[1], rgba[2]].map(x => x.toString(16).padStart(2, '0')).join('');
+                    }
+                    const updated = {...themeEditorData, customLogo: dataUrl, primaryColor: newColor};
+                    setThemeEditorData(updated);
+                    applyTheme?.({...updated, id: editingThemeId || 'preview', active: true, preset: false});
+                  };
+                };
+                reader.readAsDataURL(file);
+                e.target.value = "";
+              }}
+            />
           </div>
         </label>
+      </div>
+
+      <div className="flex gap-2 mt-4">
+        {themeEditorMode === 'add' ? (
+          <button
+            className="flex-1 p-2 text-sm bg-primary-500 dark:bg-primary-600 text-white rounded-lg hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 focus:outline-none transition-none"
+            disabled={!themeEditorData.name.trim()}
+            onClick={() => {
+              const nameClean = themeEditorData.name.trim();
+              const titleClean = themeEditorData.siteTitle.trim();
+              if (profanityFilter.isProfane(nameClean) || (titleClean && profanityFilter.isProfane(titleClean))) {
+                createError("Keep it clean!");
+                return;
+              }
+              const newTheme: Theme = {
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+                name: nameClean,
+                primaryColor: themeEditorData.primaryColor,
+                siteTitle: themeEditorData.siteTitle || 'Grade Durian',
+                customLogo: themeEditorData.customLogo,
+                active: true,
+                preset: false,
+              };
+              setPendingThemes(prev => [...prev.map(t => ({...t, active: false})), newTheme]);
+              applyTheme?.(newTheme);
+              setViewStack(["themes"]);
+            }}
+          >
+            Add
+          </button>
+        ) : (
+          <>
+            <button
+              className="flex-1 p-2 text-sm bg-primary-500 dark:bg-primary-600 text-white rounded-lg hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 focus:outline-none transition-none"
+              disabled={!themeEditorData.name.trim()}
+              onClick={() => {
+                const nameClean = themeEditorData.name.trim();
+                const titleClean = themeEditorData.siteTitle.trim();
+                if (profanityFilter.isProfane(nameClean) || (titleClean && profanityFilter.isProfane(titleClean))) {
+                  createError("Keep it clean!");
+                  return;
+                }
+                const updatedThemes = pendingThemes.map(t =>
+                  t.id === editingThemeId
+                    ? {...t, ...themeEditorData, name: nameClean, siteTitle: themeEditorData.siteTitle || 'Grade Durian'}
+                    : t
+                );
+                setPendingThemes(updatedThemes);
+                const updatedTheme = updatedThemes.find(t => t.id === editingThemeId);
+                if (updatedTheme?.active) applyTheme?.(updatedTheme);
+                setViewStack(["themes"]);
+              }}
+            >
+              Save
+            </button>
+            <button
+              className="flex-1 p-2 text-sm bg-gray-500 dark:bg-gray-800 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-900 focus:outline-none transition-none"
+              onClick={() => {
+                const revertTo = pendingThemes.find(t => t.active);
+                if (revertTo) applyTheme?.(revertTo);
+                setViewStack(["themes"]);
+              }}
+            >
+              Cancel
+            </button>
+          </>
+        )}
       </div>
     </motion.div>
   }
@@ -1668,29 +1918,63 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
 <Modal.Footer>
 <div className="-ml-2 w-full flex justify-start gap-5">
-      <button 
-      className="text-white text-sm md:text-base hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 p-2 px-3 rounded-lg"
-      onClick={()=>{saveNew();}}
-      
+      <button
+      className="text-white text-sm md:text-base hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 p-2 px-3 rounded-lg disabled:opacity-50 transition-none"
+      disabled={currentView === "themeeditor" && !themeEditorData.name.trim()}
+      onClick={() => {
+        if (currentView === "themeeditor") {
+          const nameClean = themeEditorData.name.trim();
+          const titleClean = themeEditorData.siteTitle.trim();
+          if (profanityFilter.isProfane(nameClean) || (titleClean && profanityFilter.isProfane(titleClean))) {
+            createError("Keep it clean!");
+            return;
+          }
+          if (themeEditorMode === 'add') {
+            const newTheme: Theme = {
+              id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+              name: nameClean,
+              primaryColor: themeEditorData.primaryColor,
+              siteTitle: themeEditorData.siteTitle || 'Grade Durian',
+              customLogo: themeEditorData.customLogo,
+              active: true,
+              preset: false,
+            };
+            setPendingThemes(prev => [...prev.map(t => ({...t, active: false})), newTheme]);
+            applyTheme?.(newTheme);
+            setViewStack(["themes"]);
+          } else {
+            const updatedThemes = pendingThemes.map(t =>
+              t.id === editingThemeId
+                ? {...t, ...themeEditorData, name: nameClean, siteTitle: themeEditorData.siteTitle || 'Grade Durian'}
+                : t
+            );
+            setPendingThemes(updatedThemes);
+            const updatedTheme = updatedThemes.find(t => t.id === editingThemeId);
+            if (updatedTheme?.active) applyTheme?.(updatedTheme);
+            setViewStack(["themes"]);
+          }
+        } else {
+          saveNew();
+        }
+      }}
       >
-        Save
+        {currentView === "themeeditor" ? (themeEditorMode === 'add' ? 'Add' : 'Save') : 'Save'}
       </button>
 
-     <button className="text-white  md:text-base bg-gray-500 hover:bg-gray-700 dark:bg-gray-800 dark:hover:bg-gray-900 p-2 px-3 rounded-lg text-sm"
-      type="button"
-      style={{userSelect:"none"}}
-      onClick={()=>{
-        applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY)
-        onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY)
-        setSiteTitle((settings as any).siteTitle ?? "")
-        setCustomLogo(customLogo ?? "")
-        setShowModal(false)
-        setViewStack(["home"])
-      }}
-      >Cancel</button>
-
-
-    
+      <button
+        className="text-white md:text-base bg-gray-500 hover:bg-gray-700 dark:bg-gray-800 dark:hover:bg-gray-900 p-2 px-3 rounded-lg text-sm transition-none"
+        onClick={() => {
+          if (currentView === "themeeditor") {
+            const revertTo = pendingThemes.find(t => t.active);
+            if (revertTo) applyTheme?.(revertTo);
+            setViewStack(["themes"]);
+          } else {
+            handleCancelAndReset();
+          }
+        }}
+        >
+        Cancel
+      </button>
 
       {index ==-1 &&
           <button
@@ -1701,11 +1985,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       >
         Reset Classes
       </button>
-
-
       }
-
-
 
 </div>
 

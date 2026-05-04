@@ -25,6 +25,21 @@ interface Toast {
 	type: "success" | "error" | "warning" | "info";
 }
 
+export interface Theme {
+	id: string;
+	name: string;
+	primaryColor: string;
+	siteTitle: string;
+	customLogo: string;
+	active: boolean;
+	preset: boolean;
+}
+
+export const PRESET_THEMES: Theme[] = [
+	{ id: 'durian', name: 'Durian', primaryColor: DEFAULT_PRIMARY, siteTitle: 'Grade Durian', customLogo: '', active: true, preset: true },
+	{ id: 'melon', name: 'Melon', primaryColor: '#f43f5e', siteTitle: 'Grade Melon', customLogo: '', active: false, preset: true },
+];
+
 
 
 const noShowNav = ["/login", "/", "/privacy/ios","/privacy/web", "/letter","/faq"];
@@ -96,6 +111,7 @@ function MyApp({ Component, pageProps }) {
 	const [highlightColor,setHighlightColor]=useState<string|null>(null);
 	const [siteTitle,setSiteTitle]=useState<string>("");
 	const [customLogo,setCustomLogo]=useState<string>("");
+	const [themes, setThemes] = useState<Theme[]>(PRESET_THEMES);
 	useEffect(() => {
 		if (customLogo && !hideCustomTheme) { setLogoSrc(customLogo); updateFavicon(customLogo); }
 	}, [customLogo, router.pathname, client]);
@@ -144,19 +160,148 @@ function MyApp({ Component, pageProps }) {
 	const [gated, setGated] = useState(true); // url masking
 	const logoColorApplied = useRef(false);
 
-	const applyColor = (hex: string, ignoreCustomLogo = false) => {
-		applyPalette(hex);
-		logoColorApplied.current = true;
-		if (!ignoreCustomLogo && customLogo) return;
+	// const applyColor = (hex: string, ignoreCustomLogo = false) => {
+	// 	applyPalette(hex);
+	// 	logoColorApplied.current = true;
+	// 	if (!ignoreCustomLogo && customLogo) return;
+	// 	const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+	// 	if (hex === '#f43f5e') {
+	// 		setLogoSrc(`${base}/assets/logo1.png`);
+	// 		updateFavicon(`${base}/favicon1.ico`);
+	// 	} else if (hex === DEFAULT_PRIMARY) {
+	// 		setLogoSrc(`${base}/assets/logo.png`);
+	// 		updateFavicon(`${base}/favicon.ico`);
+	// 	} else {
+	// 		recolorImage(`${base}/assets/logo.png`, hex).then(url => {
+	// 			setLogoSrc(url);
+	// 			updateFavicon(url);
+	// 		});
+	// 	}
+	// };
+	// const applyColor = (hex: string, ignoreCustomLogo = false) => {
+	// 	applyPalette(hex);
+	// 	logoColorApplied.current = true;
+
+	// 	// Prioritize custom logo unless we are explicitly ignoring it (e.g., during removal)
+	// 	if (!ignoreCustomLogo && customLogo) {
+	// 		setLogoSrc(customLogo);
+	// 		updateFavicon(customLogo);
+	// 		return;
+	// 	}
+
+	// 	const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+		
+	// 	// Preset logic: Melon
+	// 	if (hex === '#f43f5e') {
+	// 		setLogoSrc(`${base}/assets/logo1.png`);
+	// 		updateFavicon(`${base}/favicon1.ico`);
+	// 	} 
+	// 	// Preset logic: Durian (Default)
+	// 	else if (hex === DEFAULT_PRIMARY || hex === '#4ade80') {
+	// 		setLogoSrc(`${base}/assets/logo.png`);
+	// 		updateFavicon(`${base}/favicon.ico`);
+	// 	} 
+	// 	// Custom Color: Recolored Durian logo
+	// 	else {
+	// 		recolorImage(`${base}/assets/logo.png`, hex).then(url => {
+	// 			setLogoSrc(url);
+	// 			updateFavicon(url);
+	// 		});
+	// 	}
+	// };
+	// _app.tsx
+
+	// Add overrideLogo to the arguments
+	// const applyColor = (hex: string, ignoreCustomLogo = false, overrideLogo?: string) => {
+	// 	applyPalette(hex);
+		
+	// 	// Determine which logo to use: 
+	// 	// 1. The override passed by the Cancel button
+	// 	// 2. The existing state (if not ignoring it)
+	// 	const activeLogo = overrideLogo !== undefined ? overrideLogo : (ignoreCustomLogo ? "" : customLogo);
+
+	// 	if (activeLogo) {
+	// 		setLogoSrc(activeLogo);
+	// 		updateFavicon(activeLogo);
+	// 		return;
+	// 	}
+
+	// 	const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+		
+	// 	// Preset Logic
+	// 	if (hex.toLowerCase() === '#f43f5e') { // Melon
+	// 		setLogoSrc(`${base}/assets/logo1.png`);
+	// 		updateFavicon(`${base}/favicon1.ico`);
+	// 	} 
+	// 	else if (hex.toLowerCase() === '#4ade80' || hex === DEFAULT_PRIMARY) { // Durian
+	// 		setLogoSrc(`${base}/assets/logo.png`);
+	// 		updateFavicon(`${base}/favicon.ico`);
+	// 	} 
+	// 	else {
+	// 		recolorImage(`${base}/assets/logo.png`, hex).then(url => {
+	// 			setLogoSrc(url);
+	// 			updateFavicon(url);
+	// 		});
+	// 	}
+	// };
+
+	// _app.tsx
+
+	const applyColor = (hex: string, ignoreCustomLogo = false, overrideLogo?: string) => {
+		// 1. Ensure hex is a string. If it's an object (event), use default.
+		const safeHex = (typeof hex === 'string') ? hex : DEFAULT_PRIMARY;
+		applyPalette(safeHex);
+		
 		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
-		if (hex === '#f43f5e') {
+		
+		// 2. Logic to pick the logo
+		// We check typeof overrideLogo to ensure we didn't catch an event object
+		let activeLogo = (typeof overrideLogo === 'string') ? overrideLogo : (ignoreCustomLogo ? "" : customLogo);
+
+		// 3. If we have a valid custom logo string, use it.
+		if (activeLogo && activeLogo.startsWith('data:image')) {
+			setLogoSrc(activeLogo);
+			updateFavicon(activeLogo);
+			return;
+		}
+
+		// 4. PRESET LOGIC (The "First Load" savior)
+		const lowerHex = safeHex.toLowerCase();
+		if (lowerHex === '#f43f5e') { // Melon
 			setLogoSrc(`${base}/assets/logo1.png`);
 			updateFavicon(`${base}/favicon1.ico`);
-		} else if (hex === DEFAULT_PRIMARY) {
+		} else if (safeHex === DEFAULT_PRIMARY) { // Durian
 			setLogoSrc(`${base}/assets/logo.png`);
 			updateFavicon(`${base}/favicon.ico`);
 		} else {
-			recolorImage(`${base}/assets/logo.png`, hex).then(url => {
+			// Fallback: Recolor the base durian logo
+			recolorImage(`${base}/assets/logo.png`, safeHex).then(url => {
+				setLogoSrc(url);
+				updateFavicon(url);
+			});
+		}
+	};
+
+	const applyTheme = (theme: Theme) => {
+		const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
+		applyPalette(theme.primaryColor);
+		setSiteTitle(theme.siteTitle);
+		if (theme.customLogo && theme.customLogo.startsWith('data:image')) {
+			setCustomLogo(theme.customLogo);
+			setLogoSrc(theme.customLogo);
+			updateFavicon(theme.customLogo);
+			return;
+		}
+		setCustomLogo('');
+		const lowerHex = theme.primaryColor.toLowerCase();
+		if (lowerHex === '#f43f5e') {
+			setLogoSrc(`${base}/assets/logo1.png`);
+			updateFavicon(`${base}/favicon1.ico`);
+		} else if (theme.primaryColor === DEFAULT_PRIMARY) {
+			setLogoSrc(`${base}/assets/logo.png`);
+			updateFavicon(`${base}/favicon.ico`);
+		} else {
+			recolorImage(`${base}/assets/logo.png`, theme.primaryColor).then(url => {
 				setLogoSrc(url);
 				updateFavicon(url);
 			});
@@ -373,9 +518,15 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					const saved = result.settings;
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
 				if (saved.highlightColor !== undefined) setHighlightColor(saved.highlightColor ?? null);
-				if (saved.siteTitle !== undefined) setSiteTitle(saved.siteTitle ?? "");
-				if (saved.customLogo !== undefined) setCustomLogo(saved.customLogo ?? "");
-				if (saved.primaryColor) { applyPalette(saved.primaryColor); if (!saved.customLogo) applyColor(saved.primaryColor); }
+				if (saved.themes && Array.isArray(saved.themes)) {
+					setThemes(saved.themes as Theme[]);
+					const activeTheme = (saved.themes as Theme[]).find((t: Theme) => t.active);
+					if (activeTheme) applyTheme(activeTheme);
+				} else {
+					if (saved.siteTitle !== undefined) setSiteTitle(saved.siteTitle ?? "");
+					if (saved.customLogo !== undefined) setCustomLogo(saved.customLogo ?? "");
+					if (saved.primaryColor) { applyPalette(saved.primaryColor); if (!saved.customLogo) applyColor(saved.primaryColor); }
+				}
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
 						if (key === "default" || key === "mode" || key === "showCountdown" || key === "primaryColor" || key === "highlightColor") continue;
@@ -744,6 +895,9 @@ const logout = async () => {
 								customLogo={customLogo}
 								setCustomLogo={setCustomLogo}
 								originalGradingScale={originalGradingScale}
+								themes={themes}
+								setThemes={setThemes}
+								applyTheme={applyTheme}
 								onColorPreview={applyColor}
 
 							/>
@@ -803,6 +957,9 @@ const logout = async () => {
 								customLogo={customLogo}
 								setCustomLogo={setCustomLogo}
 								originalGradingScale={originalGradingScale}
+								themes={themes}
+								setThemes={setThemes}
+								applyTheme={applyTheme}
 								onColorPreview={applyColor}
 									/>
 								</AnimateSharedLayout>
@@ -854,6 +1011,9 @@ const logout = async () => {
 								customLogo={customLogo}
 								setCustomLogo={setCustomLogo}
 								originalGradingScale={originalGradingScale}
+								themes={themes}
+								setThemes={setThemes}
+								applyTheme={applyTheme}
 								onColorPreview={applyColor}
 									/>
 								</AnimateSharedLayout>

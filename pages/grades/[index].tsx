@@ -29,6 +29,7 @@ import { HiOutlineTrash } from "react-icons/hi";
 import { BsGearWideConnected } from "react-icons/bs";
 import { BsGraphUp } from "react-icons/bs";
 import SettingsModal from "../../components/settingsModal"
+import type { Theme } from "../_app";
 import {getGradebooks} from "../../utils/soap"
 import OptimizationModal from "../../components/optimizationModal";
 import {grades as sample} from "../../utils/sample"
@@ -65,6 +66,9 @@ interface GradesProps {
 	setSiteTitle:(v:string)=>void;
 	originalGradingScale:any;
 	onColorPreview?:(hex:string, ignoreCustomLogo?:boolean)=>void;
+	themes?: Theme[];
+	setThemes?: (t: Theme[]) => void;
+	applyTheme?: (t: Theme) => void;
 }
 
 
@@ -94,7 +98,7 @@ export default function Grades({
 	createError,
 	setTime,
 	timestamp,
-	width,markingPeriod,setMarkingPeriod,modalBg,setModalBg,settingsModal,setSettingsModal,schoolsList,schoolIndex,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview
+	width,markingPeriod,setMarkingPeriod,modalBg,setModalBg,settingsModal,setSettingsModal,schoolsList,schoolIndex,showCountdown,setShowCountdown,highlightColor,setHighlightColor,siteTitle,setSiteTitle,customLogo,setCustomLogo,originalGradingScale,onColorPreview,themes,setThemes,applyTheme
 	
 }: GradesProps) {
 	const router = useRouter();
@@ -493,6 +497,9 @@ export default function Grades({
 				setCustomLogo={setCustomLogo}
 				setSiteTitle={setSiteTitle}
 				originalGradingScale={originalGradingScale}
+				themes={themes}
+				setThemes={setThemes}
+				applyTheme={applyTheme}
 			/></ClientOnly>
 
 			<ClientOnly><OptimizationModal
