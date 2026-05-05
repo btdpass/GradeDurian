@@ -132,8 +132,10 @@ function MyApp({ Component, pageProps }) {
 		const titleEl = document.querySelector('title');
 		if (!titleEl) return;
 		const observer = new MutationObserver(() => {
+			observer.disconnect();
 			const updated = document.title.replace(APP_NAME, siteTitle);
 			if (updated !== document.title) document.title = updated;
+			observer.observe(titleEl, { childList: true });
 		});
 		observer.observe(titleEl, { childList: true });
 		return () => observer.disconnect();

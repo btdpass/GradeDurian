@@ -1822,7 +1822,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           </button>
         ) : (
           <>
-            <button
+            {/* <button
               className="flex-1 p-2 text-sm bg-primary-500 dark:bg-primary-600 text-white rounded-lg hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 focus:outline-none transition-none"
               disabled={!themeEditorData.name.trim()}
               onClick={() => {
@@ -1854,7 +1854,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
               }}
             >
               Cancel
-            </button>
+            </button> */}
           </>
         )}
       </div>
