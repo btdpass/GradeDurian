@@ -501,9 +501,16 @@ export default function Grades({
 										layoutId={`card-${layoutID}`}
 										whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
 										transition={{ duration: 0.12, ease: "easeOut", layout: { type: "spring", stiffness: 120, damping: 20, mass: 0.5 } }}
-										style={countdownMatchesCourse(periods) && highlightColor ? {backgroundImage:`linear-gradient(rgb(var(--primary-500)/0.15),rgb(var(--primary-500)/0.15))`,borderColor:`rgb(var(--primary-500)/0.35)`}:{}}
-										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer border ${countdownMatchesCourse(periods) && highlightColor ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+										style={countdownMatchesCourse(periods) && highlightColor ? {borderColor:`rgb(var(--primary-500)/0.35)`}:{}}
+										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer border transition-colors duration-500 ${countdownMatchesCourse(periods) && highlightColor ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
 									>
+										<div
+											className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-500"
+											style={{
+												backgroundImage: `linear-gradient(rgb(var(--primary-500)/0.15),rgb(var(--primary-500)/0.15))`,
+												opacity: countdownMatchesCourse(periods) && highlightColor ? 1 : 0,
+											}}
+										/>
 										<div className="">
 											{/* <Link href={`/grades/${layoutID}`} legacyBehavior> */}
 											<div className="hover:cursor-pointer">
