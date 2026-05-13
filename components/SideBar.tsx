@@ -8,7 +8,7 @@ import {
 } from "react-icons/ai";
 import { FiLogOut } from "react-icons/fi";
 import { IoDocumentTextOutline } from "react-icons/io5";
-import { BsGear, BsTable } from "react-icons/bs";
+import { BsGear, BsTable, BsShieldCheck } from "react-icons/bs";
 import { TbLayoutGrid } from "react-icons/tb";
 import { BsQuestionLg } from "react-icons/bs";
 import Link from "next/link";
@@ -22,12 +22,12 @@ interface NavProps {
 	setSettingsModal:(b:boolean)=>void
 	setModalBg:(b:boolean)=>void
 	client:any
-
+	isAdmin?:boolean
 }
 
 export default function SideBar({ studentInfo, logout,
 	setTime,
-	timestamp,settingsModal,setSettingsModal,setModalBg,client
+	timestamp,settingsModal,setSettingsModal,setModalBg,client,isAdmin
 	 }: NavProps) {
 	const router = useRouter();
 
@@ -86,6 +86,17 @@ export default function SideBar({ studentInfo, logout,
 								</span>
 							</Link>
 						</li>
+						{isAdmin && (
+							<li>
+								<Link
+									href="/admin"
+									className="flex items-center p-2 text-base font-normal text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20"
+								>
+									<BsShieldCheck className="flex-shrink-0 w-6 h-6" />
+									<span className="flex-1 ml-3 whitespace-nowrap">Admin</span>
+								</Link>
+							</li>
+						)}
 						<li>
 							<a
 								onClick={logout}

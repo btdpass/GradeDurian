@@ -1,5 +1,6 @@
 import React,{useState,useEffect,useRef} from "react";
 import { applyPalette, DEFAULT_PRIMARY } from "../utils/colorPalette";
+import { processLogoUpload } from "../utils/imageUtils";
 import type { Theme } from "../pages/_app";
 import { Filter as BadWordsFilter } from "bad-words";
 
@@ -1752,40 +1753,14 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  const img = new Image();
-                  img.src = event.target?.result as string;
-                  img.onload = () => {
-                    const MAX_SIZE = 512;
-                    const targetSize = (img.width > MAX_SIZE || img.height > MAX_SIZE) ? MAX_SIZE : Math.max(img.width, img.height);
-                    const canvas = document.createElement('canvas');
-                    canvas.width = targetSize;
-                    canvas.height = targetSize;
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    ctx?.drawImage(img, 0, 0, targetSize, targetSize);
-                    const dataUrl = canvas.toDataURL('image/png');
-
-                    const colorCanvas = document.createElement('canvas');
-                    colorCanvas.width = 1;
-                    colorCanvas.height = 1;
-                    const colorCtx = colorCanvas.getContext('2d', { willReadFrequently: true });
-                    colorCtx?.drawImage(img, 0, 0, 1, 1);
-                    const rgba = colorCtx?.getImageData(0, 0, 1, 1).data;
-                    let newColor = themeEditorData.primaryColor;
-                    if (rgba) {
-                      newColor = "#" + [rgba[0], rgba[1], rgba[2]].map(x => x.toString(16).padStart(2, '0')).join('');
-                    }
-                    const updated = {...themeEditorData, customLogo: dataUrl, primaryColor: newColor};
-                    setThemeEditorData(updated);
-                    applyTheme?.({...updated, id: editingThemeId || 'preview', active: true, preset: false});
-                  };
-                };
-                reader.readAsDataURL(file);
                 e.target.value = "";
+                const { dataUrl, dominantColor } = await processLogoUpload(file, themeEditorData.primaryColor);
+                const updated = {...themeEditorData, customLogo: dataUrl, primaryColor: dominantColor};
+                setThemeEditorData(updated);
+                applyTheme?.({...updated, id: editingThemeId || 'preview', active: true, preset: false});
               }}
             />
           </div>

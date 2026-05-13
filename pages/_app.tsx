@@ -42,8 +42,8 @@ export const PRESET_THEMES: Theme[] = [
 
 
 
-const noShowNav = ["/login", "/", "/privacy/ios","/privacy/web", "/letter","/faq"];
-const noShowSidebar = ["/login", "/"];
+const noShowNav = ["/login", "/", "/privacy/ios","/privacy/web", "/letter","/faq","/banned"];
+const noShowSidebar = ["/login", "/", "/banned"];
 const noCustomTheme = [...noShowNav];
 
 function LogoButton({ openInFrame, basePath, logoSrc }: { openInFrame: () => void, basePath: string, logoSrc: string }) {
@@ -112,6 +112,7 @@ function MyApp({ Component, pageProps }) {
 	const [siteTitle,setSiteTitle]=useState<string>("");
 	const [customLogo,setCustomLogo]=useState<string>("");
 	const [themes, setThemes] = useState<Theme[]>(PRESET_THEMES);
+	const [isAdmin, setIsAdmin] = useState(false);
 	useEffect(() => {
 		if (customLogo && !hideCustomTheme) { setLogoSrc(customLogo); updateFavicon(customLogo); }
 	}, [customLogo, router.pathname, client]);
@@ -387,6 +388,8 @@ function MyApp({ Component, pageProps }) {
 		encrypted?:boolean
 	) => {
 		await setLoading(true);
+		setStudentInfo(undefined);
+		setIsAdmin(false);
 		localStorage.removeItem("infoCache")
 		localStorage.removeItem("xmlCache2")
 		setCustomLogo("");
@@ -461,6 +464,11 @@ it would probably be a good idea to show the final grade also on the Home Screen
 
 				Cookies.set("token",extraData.token,{expires:5/(60*24)})
 				setClient(fetchedClient);
+				fetch(apiUrl + "/admin/checkAccess", {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ username: fetchedClient.username, hostname: new URL(fetchedClient.district).hostname })
+				}).then(r => r.json()).then(d => setIsAdmin(!!d.admin)).catch(() => {});
 				
 				districts.forEach(district=>{
 					if(district.parentVueUrl==districtURL){Cookies.set("districtURL",JSON.stringify(district),{expires:14})}
@@ -509,7 +517,13 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ url: fetchedClient.district, userHash: fetchedClient.username })
 				}).then(r => r.json()).then(result => {
+					if (result.banned) {
+						router.push(`/banned${result.reason ? `?reason=${encodeURIComponent(result.reason)}` : ''}`);
+						return;
+					}
 					if (!result.status) {
+						const adminPresetsOnNew: Theme[] = (result.adminThemes || []).map((t: Theme) => ({ ...t, preset: true, active: false }));
+						setThemes([...PRESET_THEMES.map(t => ({ ...t, active: t.id === 'durian' })), ...adminPresetsOnNew]);
 						fetch(apiUrl + "/setSettings", {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
@@ -520,14 +534,30 @@ it would probably be a good idea to show the final grade also on the Home Screen
 					const saved = result.settings;
 					if (saved.showCountdown !== undefined) setShowCountdown(Boolean(saved.showCountdown));
 				if (saved.highlightColor !== undefined) setHighlightColor(saved.highlightColor ?? null);
-				if (saved.themes && Array.isArray(saved.themes)) {
-					setThemes(saved.themes as Theme[]);
-					const activeTheme = (saved.themes as Theme[]).find((t: Theme) => t.active);
-					if (activeTheme) applyTheme(activeTheme);
-				} else {
-					if (saved.siteTitle !== undefined) setSiteTitle(saved.siteTitle ?? "");
-					if (saved.customLogo !== undefined) setCustomLogo(saved.customLogo ?? "");
-					if (saved.primaryColor) { applyPalette(saved.primaryColor); if (!saved.customLogo) applyColor(saved.primaryColor); }
+				const adminThemes: Theme[] = (result.adminThemes || []).map((t: Theme) => ({ ...t, preset: true }));
+				const savedThemes: Theme[] = (saved.themes && Array.isArray(saved.themes)) ? saved.themes as Theme[] : [];
+				const builtInIds = new Set(PRESET_THEMES.map(t => t.id));
+				const adminIds = new Set(adminThemes.map(t => t.id));
+				// Build each section from a single source — no duplicates possible.
+				// Admin themes always have an 'admin_' id prefix, so we can exclude them
+				// from user custom even if they've been deleted from __admin_themes__.
+				const builtIns = PRESET_THEMES.map(t => ({ ...t, active: savedThemes.find(s => s.id === t.id)?.active ?? t.active }));
+				const adminWithState = adminThemes.map(t => ({ ...t, active: savedThemes.find(s => s.id === t.id)?.active ?? false }));
+				const userCustom = savedThemes.filter(t => !builtInIds.has(t.id) && !t.id.startsWith('admin_'));
+				const merged = [...builtIns, ...adminWithState, ...userCustom];
+				// If the previously active theme was deleted, fall back to Durian
+				const activeTheme = merged.find(t => t.active);
+				const finalMerged = activeTheme ? merged : merged.map((t, i) => ({ ...t, active: i === 0 }));
+				setThemes(finalMerged);
+				applyTheme(activeTheme ?? finalMerged[0]);
+				// Clean up stale admin theme entries from saved settings
+				const hasStaleAdminThemes = savedThemes.some(t => t.id.startsWith('admin_') && !adminIds.has(t.id));
+				if (hasStaleAdminThemes) {
+					fetch(apiUrl + "/setSettings", {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ url: fetchedClient.district, userHash: fetchedClient.username, settings: { ...saved, themes: finalMerged } })
+					}).catch(() => {});
 				}
 					const cache: Cache = structuredClone(freshCache);
 					for (const key in saved) {
@@ -560,7 +590,13 @@ it would probably be a good idea to show the final grade also on the Home Screen
 			})
 			.catch((err) => {
 				console.error("Login failed:", err);
-				createError(err.message)
+				if (typeof err.message === 'string' && err.message.startsWith('banned|')) {
+					const reason = err.message.slice(7);
+					router.push(`/banned${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`);
+					setLoading(false);
+					return;
+				}
+				createError(err.message);
 				setLoading(false);
 			});
 
@@ -777,6 +813,7 @@ const logout = async () => {
 	setSchoolIndex(0)
 	setClient(undefined);
 	setGrades(undefined);
+	setIsAdmin(false);
 	
 	
 	 setStudentInfo(undefined);
@@ -865,6 +902,7 @@ const logout = async () => {
 								districtURL={districtURL}
 								setDistrictURL={setDistrictURL}
 								login={login}
+								logout={logout}
 								client={client}
 								grades={grades}
 								setGrades={setGrades}
@@ -910,14 +948,15 @@ const logout = async () => {
 					{client && isMediumOrLarger && !noShowSidebar.includes(router.pathname) && (
 						<div className="pb-16 md:pb-0">
 							<div className="flex overflow-x-auto">
-								<SideBar 						
+								<SideBar
 										client={client}
 										timestamp={timestamp}
 										setTime={setTime}
 										settingsModal={settingsModal}
 										setSettingsModal={setSettingsModal}
 										setModalBg={setModalBg}
-										studentInfo={studentInfo} logout={logout}/>
+										studentInfo={studentInfo} logout={logout}
+										isAdmin={isAdmin}/>
 								<MotionConfig transition={springConfig}>
 								<AnimateSharedLayout>
 									<Component
