@@ -373,7 +373,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                 {adminThemes.map((theme) => (
                                     <div key={theme.id} className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                                         {theme.customLogo
-                                            ? <img src={theme.customLogo} className="w-6 h-6 rounded object-contain flex-shrink-0" />
+                                            ? <img src={theme.customLogo} alt={theme.name} className="w-6 h-6 rounded object-contain flex-shrink-0" />
                                             : <span className="inline-block w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex-shrink-0" style={{ backgroundColor: theme.primaryColor }} />
                                         }
                                         <div className="flex-1 min-w-0">
@@ -420,7 +420,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                                 <div className="flex items-center gap-2">
                                                     {editingTheme.customLogo
                                                         ? <>
-                                                            <img src={editingTheme.customLogo} className="w-6 h-6 rounded object-contain" />
+                                                            <img src={editingTheme.customLogo} alt={editingTheme.name} className="w-6 h-6 rounded object-contain" />
                                                             <button type="button" onClick={(e) => { e.preventDefault(); setEditingTheme(p => ({ ...p, customLogo: "" })); }}
                                                                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs">✕</button>
                                                           </>
