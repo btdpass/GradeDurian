@@ -48,6 +48,30 @@ interface AdminProps {
 
 const BLANK_THEME: AdminTheme = { id: "", name: "", primaryColor: "#e9bb42", siteTitle: "", preset: true, active: false, customLogo: "" };
 
+type ConfirmState = { message: string; confirmLabel: string; danger: boolean; onConfirm: () => void } | null;
+
+function ConfirmModal({ state, onClose }: { state: ConfirmState; onClose: () => void }) {
+    if (!state) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
+            <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6" onClick={e => e.stopPropagation()}>
+                <p className="text-sm text-gray-700 dark:text-gray-200 mb-5 text-center">{state.message}</p>
+                <div className="flex gap-3">
+                    <button onClick={onClose}
+                        className="flex-1 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button onClick={() => { onClose(); state.onConfirm(); }}
+                        className={`flex-1 py-2 rounded-xl text-sm font-medium text-white transition-colors ${state.danger ? "bg-red-500 hover:bg-red-600" : "bg-primary-500 hover:bg-primary-600"}`}>
+                        {state.confirmLabel}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function AdminPanel({ client, createError, districts = [] }: AdminProps) {
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -65,6 +89,10 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
     const [banReason, setBanReason] = useState("");
     const [banSaving, setBanSaving] = useState(false);
     const [userPickerOpen, setUserPickerOpen] = useState(false);
+
+    const [confirmState, setConfirmState] = useState<ConfirmState>(null);
+    const confirm = (message: string, confirmLabel: string, danger: boolean, onConfirm: () => void) =>
+        setConfirmState({ message, confirmLabel, danger, onConfirm });
 
     const [whitelistEnabled, setWhitelistEnabled] = useState(false);
     const [whitelist, setWhitelist] = useState<KnownUser[]>([]);
@@ -302,6 +330,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
 
     return (
         <>
+            <ConfirmModal state={confirmState} onClose={() => setConfirmState(null)} />
             <Head><title>Admin - Grade Durian</title></Head>
             <div className="w-full max-w-3xl mx-auto px-4 py-8">
                 {loading && <div className="flex justify-center mt-16"><Spinner size="lg" /></div>}
@@ -353,7 +382,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                             <p className="text-xs text-gray-500 dark:text-gray-400">{theme.siteTitle} · {theme.primaryColor}</p>
                                         </div>
                                         <button onClick={() => setEditingTheme(theme)} className="text-sm font-medium px-3 py-1 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">Edit</button>
-                                        <button onClick={() => removeTheme(theme.id)} className="text-sm font-medium px-3 py-1 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
+                                        <button onClick={() => confirm(`Remove "${theme.name}"?`, "Remove", true, () => removeTheme(theme.id))} className="text-sm font-medium px-3 py-1 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                                     </div>
                                 ))}
 
@@ -440,10 +469,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                                 {ban.reason && <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">Reason: {ban.reason}</p>}
                                                 {ban.bannedAt && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{new Date(ban.bannedAt).toLocaleString()}</p>}
                                             </div>
-                                            <button onClick={() => unbanUser(ban.username, ban.hostname)}
-                                                className="flex-shrink-0 text-sm font-medium px-3 py-1 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
-                                                Unban
-                                            </button>
+                                            <button onClick={() => confirm(`Unban ${ban.username}?`, "Unban", false, () => unbanUser(ban.username, ban.hostname))} className="flex-shrink-0 text-sm font-medium px-3 py-1 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">Unban</button>
                                         </div>
                                     </div>
                                 ))}
@@ -507,7 +533,9 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                         <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Reason (optional)</label>
                                         <input type="text" value={banReason} onChange={(e) => setBanReason(e.target.value)} placeholder="Violation of terms of service" className={inputCls} />
                                     </div>
-                                    <button onClick={addBan} disabled={!selectedUser || banSaving}
+                                    <button
+                                        onClick={() => confirm(`Ban ${selectedUser?.username}?${banReason ? ` Reason: "${banReason}"` : ""}`, "Ban User", true, addBan)}
+                                        disabled={!selectedUser || banSaving}
                                         className="w-full py-2 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors">
                                         {banSaving ? "Banning…" : "Ban User"}
                                     </button>
@@ -527,7 +555,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => toggleWhitelist(!whitelistEnabled)}
+                                        onClick={() => confirm(whitelistEnabled ? "Disable whitelist-only mode?" : "Enable whitelist-only mode? Users not on the list will be blocked.", whitelistEnabled ? "Disable" : "Enable", whitelistEnabled, () => toggleWhitelist(!whitelistEnabled))}
                                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${whitelistEnabled ? "bg-primary-500" : "bg-gray-300 dark:bg-gray-600"}`}
                                     >
                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${whitelistEnabled ? "translate-x-6" : "translate-x-1"}`} />
@@ -550,10 +578,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                             <p className="text-sm font-medium font-mono text-gray-900 dark:text-white">{u.username}</p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400">{districtName(u.hostname)}</p>
                                         </div>
-                                        <button onClick={() => removeFromWhitelist(u.username, u.hostname)}
-                                            className="flex-shrink-0 text-sm font-medium px-3 py-1 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                            Remove
-                                        </button>
+                                        <button onClick={() => confirm(`Remove ${u.username} from whitelist?`, "Remove", true, () => removeFromWhitelist(u.username, u.hostname))} className="flex-shrink-0 text-sm font-medium px-3 py-1 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Remove</button>
                                     </div>
                                 ))}
 
@@ -605,7 +630,9 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                             )}
                                         </div>
                                     )}
-                                    <button onClick={addToWhitelist} disabled={!wlSelectedUser || wlSaving}
+                                    <button
+                                        onClick={() => confirm(`Add ${wlSelectedUser?.username} to the whitelist?`, "Add", false, addToWhitelist)}
+                                        disabled={!wlSelectedUser || wlSaving}
                                         className="w-full py-2 rounded-lg bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors">
                                         {wlSaving ? "Adding…" : "Add to Whitelist"}
                                     </button>

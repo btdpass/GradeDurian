@@ -77,6 +77,8 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
         const titleInputRef = useRef<HTMLInputElement>(null)
         const logoInputRef = useRef<HTMLInputElement>(null)
         const [colorOpen, setColorOpen] = useState(false)
+        const [deleteConfirm, setDeleteConfirm] = useState<{name:string, onConfirm:()=>void}|null>(null)
+
         const [titleOpen, setTitleOpen] = useState(false)
         //const [customLogo, setCustomLogo] = useState<string>("")
         const currentView=viewStack.at(-1)
@@ -542,8 +544,20 @@ function deleteCourseCategory(i){
 
 return(
 <div>
+{deleteConfirm && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDeleteConfirm(null)}>
+    <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
+    <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6" onClick={e => e.stopPropagation()}>
+      <p className="text-sm text-gray-700 dark:text-gray-200 mb-5 text-center">Delete theme "{deleteConfirm.name}"?</p>
+      <div className="flex gap-3">
+        <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+        <button onClick={() => { setDeleteConfirm(null); deleteConfirm.onConfirm(); }} className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-sm font-medium text-white transition-colors">Delete</button>
+      </div>
+    </div>
+  </div>
+)}
 {letterScale!=undefined ? (
-<Modal 
+<Modal
 show={showModal}
 //onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
 onClose={() => handleCancelAndReset()}
@@ -1609,16 +1623,18 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
                   <HiPencil size="1rem" />
                 </button>
                 <button
-                  onClick={() => {
-                    if (!window.confirm(`Delete theme "${theme.name}"?`)) return;
-                    const wasActive = theme.active;
-                    const newThemes = pendingThemes.filter(t => t.id !== theme.id);
-                    if (wasActive && newThemes.length > 0) {
-                      newThemes[0] = {...newThemes[0], active: true};
-                      applyTheme?.(newThemes[0]);
+                  onClick={() => setDeleteConfirm({
+                    name: theme.name,
+                    onConfirm: () => {
+                      const wasActive = theme.active;
+                      const newThemes = pendingThemes.filter(t => t.id !== theme.id);
+                      if (wasActive && newThemes.length > 0) {
+                        newThemes[0] = {...newThemes[0], active: true};
+                        applyTheme?.(newThemes[0]);
+                      }
+                      setPendingThemes(newThemes);
                     }
-                    setPendingThemes(newThemes);
-                  }}
+                  })}
                   className="p-1.5 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
                 >
                   <HiOutlineTrash size="1rem" />

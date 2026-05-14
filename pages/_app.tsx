@@ -367,6 +367,7 @@ function MyApp({ Component, pageProps }) {
 		updateFavicon(`${base}/favicon.ico`);
 		setCustomLogo("");
 		setSiteTitle("");
+		setThemes(PRESET_THEMES);
 		//@ts-expect-error
 		setClient({guest:true,loadedAttendance:attendance,loadedSchedule:schedule,loadedDocuments:[{file:{date:new Date(),type:"Sample"},comment:"Sample Document",get:()=>{return [{base64:sampleDocument}]	}}]})
 		setGrades(sample)
@@ -670,6 +671,7 @@ async function checkDonations(){
 	},[client])
 
 
+
  
 
 
@@ -723,9 +725,36 @@ useEffect(()=>{
       router.events.off("routeChangeStart", handleRouteChange);
       router.events.off("routeChangeComplete", handleRouteNavigate);
     };
-
-
   }, [router]);
+
+	useEffect(() => {
+		//@ts-expect-error
+		if (!client || client?.guest) return;
+		const checkBan = async () => {
+			if (router.pathname === '/banned') return;
+			try {
+				const hostname = new URL(client.district).hostname;
+				const res = await fetch(apiUrl + "/checkBan", {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ username: client.username, hostname })
+				}).then(r => r.json());
+				if (res.banned) {
+					setStudentInfo(undefined);
+					setIsAdmin(false);
+					router.push(`/banned${res.reason ? `?reason=${encodeURIComponent(res.reason)}` : ''}`);
+				}
+			} catch {}
+		};
+		// Check on tab focus and on every route change
+		const onVisible = () => { if (!document.hidden) checkBan(); };
+		document.addEventListener('visibilitychange', onVisible);
+		router.events.on('routeChangeComplete', checkBan);
+		return () => {
+			document.removeEventListener('visibilitychange', onVisible);
+			router.events.off('routeChangeComplete', checkBan);
+		};
+	}, [client, router.pathname]);
 
  
 
@@ -814,6 +843,7 @@ const logout = async () => {
 	setClient(undefined);
 	setGrades(undefined);
 	setIsAdmin(false);
+	setThemes(PRESET_THEMES);
 	
 	
 	 setStudentInfo(undefined);
