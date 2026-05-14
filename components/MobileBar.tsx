@@ -5,10 +5,11 @@ import {
 	AiOutlineBook,
 } from "react-icons/ai";
 import { IoDocumentTextOutline } from "react-icons/io5";
+import { BsShieldCheck } from "react-icons/bs";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-export default function MobileBar({client}:any) {
+export default function MobileBar({client, isAdmin}:any) {
 	const router = useRouter();
 
 
@@ -60,13 +61,27 @@ export default function MobileBar({client}:any) {
 						href="/documents"
 						className={`flex justify-center p-4 w-full bg-${
 							router.pathname === "/documents" ? "gray-200" : "white"
-						} rounded-r-lg hover:text-gray-700 hover:bg-gray-200 focus:outline-none dark:hover:text-white dark:bg-gray-${
+						} ${!isAdmin ? "rounded-r-lg" : ""} hover:text-gray-700 hover:bg-gray-200 focus:outline-none dark:hover:text-white dark:bg-gray-${
 							router.pathname === "/documents" ? 700 : 800
 						} dark:hover:bg-gray-700`}
 					>
 						<IoDocumentTextOutline className="h-full" size="1.2rem" />
 					</Link>
 				</li>
+				{isAdmin && (
+					<li className="w-full">
+						<Link
+							href="/admin"
+							className={`flex justify-center p-4 w-full rounded-r-lg focus:outline-none text-primary-500 dark:text-primary-400 bg-${
+								router.pathname === "/admin" ? "gray-200" : "white"
+							} hover:bg-gray-200 dark:bg-gray-${
+								router.pathname === "/admin" ? 700 : 800
+							} dark:hover:bg-gray-700`}
+						>
+							<BsShieldCheck className="h-full" size="1.2rem" />
+						</Link>
+					</li>
+				)}
 			</ul>
 		</div>
 	);

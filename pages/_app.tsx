@@ -1060,7 +1060,7 @@ const logout = async () => {
 								</AnimateSharedLayout>
 								</MotionConfig>
 								<div className="px-4 fixed bottom-5 w-full">
-									<MobileBar client={client} />
+									<MobileBar client={client} isAdmin={isAdmin} />
 								</div>
 								{modalBg && <div style={{opacity:0.1}} className="fixed inset-0 bg-gray-500 z-0"></div>}
 							</div>
