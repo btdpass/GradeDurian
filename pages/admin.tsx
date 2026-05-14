@@ -17,7 +17,6 @@ type Ban = {
 type KnownUser = {
     username: string;
     hostname: string;
-    lastSeen: string;
 };
 
 type AdminTheme = {
