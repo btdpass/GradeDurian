@@ -302,7 +302,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
 
     return (
         <>
-            <Head><title>Admin — Grade Durian</title></Head>
+            <Head><title>Admin - Grade Durian</title></Head>
             <div className="w-full max-w-3xl mx-auto px-4 py-8">
                 {loading && <div className="flex justify-center mt-16"><Spinner size="lg" /></div>}
 
