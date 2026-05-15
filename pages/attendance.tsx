@@ -93,10 +93,8 @@ export default function Attendance({ client, createError }: AttendanceProps) {
 	}, [data]);
 
 	const now = new Date();
-	const schoolYearStart = new Date(now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1, 7, 1); // Aug 1
 	const isCurrentMonth = calMonth.getFullYear() === now.getFullYear() && calMonth.getMonth() === now.getMonth();
-	const isSchoolYearStart = calMonth.getFullYear() === schoolYearStart.getFullYear() && calMonth.getMonth() === schoolYearStart.getMonth();
-	const prevMonth = () => { if (isSchoolYearStart) return; const d = new Date(calMonth); d.setMonth(d.getMonth() - 1); setCalMonth(d); };
+	const prevMonth = () => { const d = new Date(calMonth); d.setMonth(d.getMonth() - 1); setCalMonth(d); };
 	const nextMonth = () => { if (isCurrentMonth) return; const d = new Date(calMonth); d.setMonth(d.getMonth() + 1); setCalMonth(d); };
 
 	// Build calendar grid — always 42 cells (6 rows), with prev/next month overflow dates
@@ -320,7 +318,7 @@ export default function Attendance({ client, createError }: AttendanceProps) {
 						<div className="w-full rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-md [transition:none]">
 							{/* Month nav */}
 							<div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-								<button onClick={prevMonth} disabled={isSchoolYearStart} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed">
+								<button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300">
 									<HiChevronLeft size="1.2rem" />
 								</button>
 								<p className="font-semibold text-gray-900 dark:text-white">
