@@ -548,7 +548,7 @@ return(
   <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" onClick={() => setDeleteConfirm(null)}>
     <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
     <div className="relative w-full max-w-sm bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6" onClick={e => e.stopPropagation()}>
-      <p className="text-sm text-gray-700 dark:text-gray-200 mb-5 text-center">Delete theme "{deleteConfirm.name}"?</p>
+      <p className="text-sm text-gray-700 dark:text-gray-200 mb-5 text-center">Delete theme &ldquo;{deleteConfirm.name}&rdquo;?</p>
       <div className="flex gap-3">
         <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Cancel</button>
         <button onClick={() => { setDeleteConfirm(null); deleteConfirm.onConfirm(); }} className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-sm font-medium text-white transition-colors">Delete</button>
@@ -1734,7 +1734,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           <div className="flex items-center gap-2">
             {themeEditorData.customLogo
               ? <>
-                  <img src={themeEditorData.customLogo} className="w-6 h-6 rounded object-contain" />
+                  <img src={themeEditorData.customLogo} alt="" className="w-6 h-6 rounded object-contain" />
                   <button
                     type="button"
                     onClick={(e) => {
