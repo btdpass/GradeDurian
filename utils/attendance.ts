@@ -1,8 +1,14 @@
 interface Absense {
 	date: Date;
+	reason: string;
+	note: string;
+	description: string;
 	periods: {
-		name: string;
 		period: number;
+		name: string;
+		reason: string;
+		course: string;
+		iconName: string; // e.g. "icon_excused.gif", "icon_unexcused.gif", "icon_tardy.gif"
 	}[];
 }
 
@@ -67,7 +73,7 @@ const getColor = (label: string) => {
 
 function preSort(absences){
 	absences.forEach(({periods},i)=>{
-		absences[i].periods=periods.filter((period)=>period.name!="Not Included")
+		absences[i].periods=periods.filter((period)=>period.name && period.name!="Not Included")
 	})
 	return absences
 }

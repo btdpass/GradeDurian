@@ -331,7 +331,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
         <>
             <ConfirmModal state={confirmState} onClose={() => setConfirmState(null)} />
             <Head><title>Admin - Grade Durian</title></Head>
-            <div className="w-full max-w-3xl mx-auto px-4 py-8">
+            <div className="w-full p-5 md:p-10">
                 {loading && <div className="flex justify-center mt-16"><Spinner size="lg" /></div>}
 
                 {!loading && !client && (

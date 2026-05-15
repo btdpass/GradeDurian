@@ -11,6 +11,7 @@ import {
 	ordinalSuffix,
 	calculateGPA,
 	updateGPA,
+	excludeGPA,
 	SchoolsListType,
 } from "../../utils/grades";
 import { Modal } from "flowbite-react";
@@ -82,6 +83,10 @@ export default function Grades({
 	const [defaultView, setDefaultView] = useState("card");
 	//const [period, setMP] = useState<number>();
 	const [gpaModal, setGpaModal] = useState(false);
+	useEffect(() => {
+		document.body.style.overflow = gpaModal ? 'hidden' : '';
+		return () => { document.body.style.overflow = ''; };
+	}, [gpaModal]);
 	const view = (router.query.view as string) || defaultView;
 	const [countdown, setCountdown] = useState<{period: number, label: string, ms: number} | null>(null);
 	const [countdownTick, setCountdownTick] = useState<{label: string, ms: number} | null>(null);
@@ -115,7 +120,7 @@ export default function Grades({
 			const today = client?.loadedSchedule?.today;
 			if (!today) { setCountdown(null); return; }
 			const all = [...(today.main || []), ...(today.con || [])];
-			const now = new Date(); // now.setHours(9); // TEST
+			const now = new Date(); //now.setHours(9); // TEST
 			const active = all.find(c => {
 				const s = parseTime(Array.isArray(c.start) ? c.start[0] : c.start);
 				const e = parseTime(Array.isArray(c.end) ? c.end[0] : c.end);
@@ -152,7 +157,9 @@ export default function Grades({
 	const isMediumOrLarger = width >= 768;
 
 	const formatPeriods = (ps: number[]) =>
-		ps.length > 1 ? `${ps[0]} & ${ps[ps.length - 1]}` : String(ps[0]);
+		ps.filter(p => !isNaN(p)).length > 1
+			? ps.filter(p => !isNaN(p)).join("-")
+			: String(ps.find(p => !isNaN(p)) ?? ps[0]);
 	const currentMP = grades ? findCurrentPeriod(grades) : -1;
 	const urgencyClass = (ms: number, base: string) => {
 		if (ms < 60000) return 'bg-red-500 dark:bg-red-600 text-white';
@@ -286,6 +293,13 @@ export default function Grades({
 		clone[mp]=updateGPA(clone[mp], i, e.target.checked);
 		setGrades(clone)
 	};
+
+	const changeExcluded = (e, i: number) => {
+		//@ts-ignore
+		const clone = structuredClone(grades)
+		clone[mp]=excludeGPA(clone[mp], i, e.target.checked);
+		setGrades(clone)
+	};
 	
 
 
@@ -343,43 +357,71 @@ export default function Grades({
 
 
 			{
-			<ClientOnly><Modal show={gpaModal} onClose={() => setGpaModal(false)}>
-				<Modal.Header>GPA Calculator</Modal.Header>
-				<Modal.Body>
-					<p className="dark:text-white font-bold text-xl">
-						GPA: {grades?.[mp]?.gpa.toFixed(2)}
-					</p>
-					<p className="dark:text-white font-bold text-xl pb-5">
-						WGPA: {grades?.[mp]?.wgpa.toFixed(2)}
-					</p>
-
-					<p className="dark:text-white font-bold text-xl">Weighted?</p>
-					{grades?.[mp]?.courses.map((course, i) => (
-						<div className="flex gap-2 items-center pt-2" key={i}>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={course?.weighted}
-									className="sr-only peer"
-									onChange={(e) => changeWeights(e, i)}
-								/>
-								<div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-							</label>
-							<p className="dark:text-white text-md md:text-lg">
-								{course?.name}
-							</p>
+			<ClientOnly><Modal show={gpaModal} onClose={() => setGpaModal(false)} size="3xl">
+				<Modal.Header className="dark:bg-gray-800 dark:border-gray-700">GPA Calculator</Modal.Header>
+				<Modal.Body className="p-0 dark:bg-gray-800">
+					{/* Summary bar */}
+					<div className="flex gap-8 px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+						<div>
+							<p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Unweighted GPA</p>
+							<p className="text-2xl font-bold text-gray-900 dark:text-white">{grades?.[mp]?.gpa.toFixed(2)}</p>
 						</div>
-					))}
-				</Modal.Body>
-				<Modal.Footer>
-					<div className="flex gap-2">
-						<button
-							onClick={() => setGpaModal(false)}
-							className="rounded-lg bg-gray-500 px-2.5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
-						>
-							Close
-						</button>
+						<div>
+							<p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Weighted GPA</p>
+							<p className="text-2xl font-bold text-primary-500">{grades?.[mp]?.wgpa.toFixed(2)}</p>
+						</div>
 					</div>
+					{/* Table */}
+					<div className="overflow-x-auto">
+						<table className="min-w-max w-full text-sm text-left text-gray-500 dark:text-gray-400">
+							<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+								<tr>
+									<th className="py-3 px-4">Course</th>
+									<th className="py-3 px-4">Grade</th>
+									<th className="py-3 px-4">AP/Weighted</th>
+									<th className="py-3 px-4">Exclude</th>
+								</tr>
+							</thead>
+							<tbody>
+								{grades?.[mp]?.courses.map((course, i) => {
+									const included = !course.excluded;
+									const rowBase = `h-12 border-b dark:border-gray-700 transition-colors ${included ? (i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800") : "opacity-30"}`;
+									return (
+										<tr key={i} className={rowBase}>
+											<td className="py-2 px-4 text-gray-900 dark:text-white font-medium">{course.name}</td>
+											<td className="py-2 px-4 whitespace-nowrap">
+												<span style={{ color: course.grade.color?.includes("#") ? course.grade.color : undefined }}
+													className={`font-bold text-${course.grade.color}-400`}>
+													{course.grade.letter}
+													{!isNaN(course.grade.raw) && ` (${course.grade.raw}%)`}
+												</span>
+											</td>
+											<td className="py-2 px-4">
+												<label className="relative inline-flex items-center cursor-pointer">
+													<input type="checkbox" checked={!!course.weighted} className="sr-only peer"
+														onChange={(e) => changeWeights(e, i)} disabled={!included} />
+													<div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600 peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800" />
+												</label>
+											</td>
+											<td className="py-2 px-4">
+												<label className="relative inline-flex items-center cursor-pointer">
+													<input type="checkbox" checked={!included} className="sr-only peer"
+														onChange={(e) => changeExcluded(e, i)} />
+													<div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500 peer-focus:ring-2 peer-focus:ring-red-300 dark:peer-focus:ring-red-800" />
+												</label>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+				</Modal.Body>
+				<Modal.Footer className="dark:bg-gray-800 dark:border-gray-700">
+					<button onClick={() => setGpaModal(false)}
+						className="rounded-lg bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+						Close
+					</button>
 				</Modal.Footer>
 			</Modal></ClientOnly>
 			}
@@ -391,7 +433,7 @@ export default function Grades({
 					<div style={{color:"rgb(var(--primary-500))"}} className="[&_svg]:fill-primary-500"><Spinner size="xl" color="warning" /></div>
 				</div>
 			) : (
-				<div className="md:max-w-max">
+				<div>
 					<ClientOnly><SettingsModal
 				client={client}
 				index={-1}
@@ -469,10 +511,7 @@ export default function Grades({
 						</button>}
 					</div>
 					{view === "card" && (
-						<div
-							className="grid gap-5 2col:grid-cols-2 3col:grid-cols-3 4col:grid-cols-4 justify-items-center mx-1" //so if u decide the margin is fugly, just get rid of mx-1 and put back items-stretch and w-full
-							//style={{ gridTemplateColumns: "repeat(auto-fit, 384px)" }}
-						>
+						<div className="grid gap-5 2col:grid-cols-2 3col:grid-cols-3 4col:grid-cols-4 items-stretch w-full">
 							{(()=>{
 								return (grades?.[mp]?.courses.map(({ name, period, periods, grade, teacher, settings,layoutID}, i) => {
 								var semesterGrade
@@ -494,7 +533,7 @@ export default function Grades({
 
 				
 							return(
-								<div className="mx-2 flex justify-center w-full md:w-96" key={i}>
+								<div className="flex justify-center w-full" key={i}>
 									<Link href={`/grades/${layoutID}`} legacyBehavior>
 									<motion.div
 										layout="preserve-aspect"
@@ -502,7 +541,7 @@ export default function Grades({
 										whileHover={{ scale: 1.03, boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }}
 										transition={{ duration: 0.12, ease: "easeOut", layout: { type: "spring", stiffness: 120, damping: 20, mass: 0.5 } }}
 										style={countdownMatchesCourse(periods) && highlightColor ? {borderColor:`rgb(var(--primary-500)/0.35)`}:{}}
-										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 max-w-sm rounded-lg shadow-md cursor-pointer border transition-colors duration-500 ${countdownMatchesCourse(periods) && highlightColor ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+										className={`relative h-full flex flex-col justify-between w-full gap-2 md:gap-5 p-4 sm:p-6 rounded-lg shadow-md cursor-pointer border transition-colors duration-500 ${countdownMatchesCourse(periods) && highlightColor ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
 									>
 										<div
 											className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-500"
@@ -514,17 +553,14 @@ export default function Grades({
 										<div className="">
 											{/* <Link href={`/grades/${layoutID}`} legacyBehavior> */}
 											<div className="hover:cursor-pointer">
+													<div className="absolute top-4 right-4 sm:top-6 sm:right-6 text-xl font-semibold text-gray-400 dark:text-gray-500">{formatPeriods(periods)}</div>
 													<h5 className="md:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-														<p className="font-bold">
-															{formatPeriods(periods)} -{" "}
-															<motion.span
-		
-																layoutId={`name-${layoutID}`}
-																className="font-semibold"
-															>
-																{name}
-															</motion.span>
-														</p>
+														<motion.span
+															layoutId={`name-${layoutID}`}
+															className="font-bold"
+														>
+															{name}
+														</motion.span>
 													</h5>
 													<motion.p
 														className="text-md tracking-tight text-gray-900 dark:text-white flex items-center gap-2"
@@ -584,109 +620,52 @@ export default function Grades({
 				</div>
 				)}
 					{view === "table" && (
-						<div className="overflow-x-auto max-w-max -md rounded-lg border border-gray-200 dark:border-gray-700">
-							<table className="text-sm text-left text-gray-500 dark:text-gray-400">
+						<div className="w-full overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
+							<table className="min-w-max w-full text-sm text-left text-gray-500 dark:text-gray-400">
 								<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 									<tr>
-										<th scope="col" className="py-3 pl-6">
-											Period
-										</th>
-										<th scope="col" className="py-3 px-6">
-											Course Name
-										</th>
-										<th scope="col" className="py-3 px-6">
-											Teacher
-										</th>
-										<th scope="col" className="py-3 px-6">
-											Grade
-										</th>
-										{
-										hasFinals && <th scope="col" className="py-3 px-6">
-												Final		
-											</th>
-										}
-										{ 
-										hasSemester &&	<th scope="col" className="py-3 px-6">
-												Semester		
-											</th>
-										}
+										<th scope="col" className="py-3 px-6 whitespace-nowrap">Period</th>
+										<th scope="col" className="py-3 px-6 whitespace-nowrap">Course Name</th>
+										<th scope="col" className="py-3 px-6 whitespace-nowrap">Teacher</th>
+										<th scope="col" className="py-3 px-6 whitespace-nowrap">Grade</th>
+										{hasFinals   && <th scope="col" className="py-3 px-6 whitespace-nowrap">Final</th>}
+										{hasSemester && <th scope="col" className="py-3 px-6 whitespace-nowrap">Semester</th>}
 									</tr>
 								</thead>
 								<tbody>
-									{grades?.[mp]?.courses.map(
-										({ name, period, periods, grade, teacher,settings }, i) => {
-											var semesterGrade
-											if(!settings?.finals?.isSemester){
-											var finalGrade=settings?.finals?.show ? calcFinal(settings.finals.categories,grades) : undefined
-											const semesters=settings?.finals?.semesters
-											const semCats=semesters.map(semester=>semester.categories)
-											var indexX=semCats.findIndex(categories=>categories.some(category=>interimWiseComparison(category,{mp:mp})))
-											semesterGrade=indexX!=-1 ? (settings?.finals?.semesters[indexX].show||true ? (calcFinal(settings?.finals?.semesters[indexX].categories,grades)) : undefined):undefined
-											
-										}else{
-											finalGrade=undefined
-											indexX=settings.finals.semesters.findIndex(semester=>semester!=undefined)
-											const semester=settings?.finals?.semesters[indexX]     
-											const isNow=semester.categories.some(category=>interimWiseComparison(category,{mp:mp}))
-											semesterGrade=isNow ? calcFinal(semester.categories,grades) : undefined
-									
-											}
-
-
-											
-											
-											return (
-											<tr
-												className={`bg-${
-													i % 2 == 0 ? "white" : "gray-50"
-												} border-b dark:bg-gray-${
-													i % 2 == 0 ? 900 : 800
-												} dark:border-gray-700`}
-												key={i}
-											>
-												<td
-													scope="row"
-													className="py-4 pl-6 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-												>
-													{formatPeriods(periods)}
+									{grades?.[mp]?.courses.map(({ name, period, periods, grade, teacher, settings }, i) => {
+										var semesterGrade
+										if (!settings?.finals?.isSemester) {
+											var finalGrade = settings?.finals?.show ? calcFinal(settings.finals.categories, grades) : undefined
+											const semCats = settings?.finals?.semesters.map(s => s.categories)
+											var indexX = semCats.findIndex(cats => cats.some(cat => interimWiseComparison(cat, { mp })))
+											semesterGrade = indexX !== -1 ? (calcFinal(settings?.finals?.semesters[indexX].categories, grades)) : undefined
+										} else {
+											finalGrade = undefined
+											indexX = settings.finals.semesters.findIndex(s => s !== undefined)
+											const semester = settings?.finals?.semesters[indexX]
+											semesterGrade = semester?.categories.some(c => interimWiseComparison(c, { mp })) ? calcFinal(semester.categories, grades) : undefined
+										}
+										const rowBase = `h-14 border-b dark:border-gray-700 ${i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"}`;
+										const cell = "py-3 px-6 whitespace-nowrap";
+										const gradeSpan = (g: any) => g ? (
+											<span style={{ color: g.color.includes("#") ? g.color : undefined }} className={`font-bold text-${g.color}-400`}>
+												{g.letter}{!isNaN(g.raw) && ` (${g.raw}%)`}
+											</span>
+										) : <span className="text-gray-400">N/A</span>;
+										return (
+											<tr className={rowBase} key={i}>
+												<td className={cell}>{formatPeriods(periods)}</td>
+												<td className={`${cell} text-gray-900 dark:text-white font-medium`}>
+													<Link href={`/grades/${i}`} legacyBehavior>{name}</Link>
 												</td>
-												<td className="py-4 px-6">
-													<Link href={`/grades/${i}`} legacyBehavior>
-														{name}
-													</Link>
-												</td>
-												<td className="py-4 px-6">{teacher.name}</td>
-												<td className="py-4 px-6">
-													<span 
-													style={{color:grade.color.includes("#") && grade.color}}
-													className={`font-bold text-${grade.color}-400`}>
-														{grade.letter}
-														{!isNaN(grade.raw) && ` (${grade.raw}%)`}
-													</span>
-												</td>
-												{hasFinals &&
-													<td className="py-4 px-6">
-														{finalGrade ? <span 
-														style={{color:finalGrade.color.includes("#") && finalGrade.color}}
-														className={`font-bold text-${finalGrade.color}-400`}>
-															{finalGrade.letter}
-															{!isNaN(finalGrade.raw) && ` (${finalGrade.raw}%)`}
-														</span> : <p>N/A</p>}
-													</td>
-												}
-												{hasSemester &&
-													<td className="py-4 px-6">
-														{semesterGrade ? <span 
-														style={{color:semesterGrade.color.includes("#") && semesterGrade.color}}
-														className={`font-bold text-${semesterGrade.color}-400`}>
-															{semesterGrade.letter}
-															{!isNaN(semesterGrade.raw) && ` (${semesterGrade.raw}%)`}
-														</span> : <p>N/A</p>}
-													</td>
-												}
+												<td className={cell}>{teacher.name}</td>
+												<td className={cell}>{gradeSpan(grade)}</td>
+												{hasFinals   && <td className={cell}>{gradeSpan(finalGrade)}</td>}
+												{hasSemester && <td className={cell}>{gradeSpan(semesterGrade)}</td>}
 											</tr>
-										)}
-									)}
+										);
+									})}
 								</tbody>
 							</table>
 						</div>

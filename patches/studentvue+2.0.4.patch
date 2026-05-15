@@ -8,10 +8,18 @@ diff --git a/node_modules/studentvue/lib/StudentVue/.DS_Store b/node_modules/stu
 new file mode 100644
 index 0000000..e69de29
 diff --git a/node_modules/studentvue/lib/StudentVue/Client/Client.js b/node_modules/studentvue/lib/StudentVue/Client/Client.js
-index a038a16..91be620 100644
+index a038a16..47875da 100644
 --- a/node_modules/studentvue/lib/StudentVue/Client/Client.js
 +++ b/node_modules/studentvue/lib/StudentVue/Client/Client.js
-@@ -478,6 +478,7 @@
+@@ -401,6 +401,7 @@
+                     name: period['@_Name'][0],
+                     reason: period['@_Reason'][0],
+                     course: period['@_Course'][0],
++                    iconName: period['@_IconName']?.[0] ?? '',
+                     staff: {
+                       name: period['@_Staff'][0],
+                       staffGu: period['@_StaffGU'][0],
+@@ -478,6 +479,7 @@
                  return {
                    courseID: course['@_CourseID']?.[0] ?? "",
                    period: Number(course['@_Period'][0]),
@@ -19,7 +27,7 @@ index a038a16..91be620 100644
                    title: _he.default.decode(course['@_Title'][0]),
                    room: course['@_Room'][0],
                    staff: {
-@@ -614,10 +615,8 @@
+@@ -614,10 +616,8 @@
            });
          };
          if (fresh || reportingPeriodIndex == null) {

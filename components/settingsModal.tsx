@@ -564,10 +564,7 @@ onClose={() => handleCancelAndReset()}
 className={!isMediumOrLarger && `bg-transparent`}
 >
 
-<Modal.Header
-className="dark:bg-gray-700"
-
->
+<Modal.Header className="dark:bg-gray-800 dark:border-gray-700">
 
 <p className="text-2xl">{index === -1 ? 'Settings' : 'Class Settings'} <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
 {index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>}
@@ -576,7 +573,7 @@ className="dark:bg-gray-700"
 
 <Modal.Body
 style={{maxHeight:isMediumOrLarger ? 400 : 500,minHeight:400}}
-className="overflow-y-auto"
+className="overflow-y-auto dark:bg-gray-800"
 >
 {
 
@@ -597,9 +594,8 @@ className="overflow-y-auto"
       {index === -1 && <motion.button
         {...animationPropsHome}
         key="countdown"
-        style={{borderWidth:1}}
-        onClick={() => setViewStack(["currentclass"])}
-        className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"
+          onClick={() => setViewStack(["currentclass"])}
+        className="w-full bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 text-base text-left text-gray-900 dark:text-white px-4 py-3 font-medium transition-colors"
       >
         <div className="flex justify-between items-center">
           Current Class
@@ -609,9 +605,8 @@ className="overflow-y-auto"
       {index === -1 && <motion.button
         {...animationPropsHome}
         key="sitecolor"
-        style={{borderWidth:1}}
         onClick={() => setViewStack(["themes"])}
-        className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"
+        className="w-full bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 text-base text-left text-gray-900 dark:text-white px-4 py-3 font-medium transition-colors"
       >
         <div className="flex justify-between items-center">
           Site Theme
@@ -622,61 +617,51 @@ className="overflow-y-auto"
         </div>
       </motion.button>}
       <motion.button
-      {...animationPropsHome}
-      key="letter"
-      style={{borderWidth:1}}
-      onClick={()=>{setViewStack(["letter"])}} 
-      className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg  border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold"> 
+        {...animationPropsHome}
+        key="letter"
+        onClick={() => setViewStack(["letter"])}
+        className="w-full bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 text-base text-left text-gray-900 dark:text-white px-4 py-3 font-medium transition-colors">
         <div className="flex justify-between items-center">
           Letter Scale
           <HiArrowCircleRight/>
         </div>
-
       </motion.button>
 
-{!mcps &&     <motion.button
-      {...animationPropsHome} 
-      key="finals"
-      onClick={()=>{setViewStack(["finals"])}}
-      style={{borderWidth:1}}
-      className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold">
-      
+{!mcps && <motion.button
+        {...animationPropsHome}
+        key="finals"
+        onClick={() => setViewStack(["finals"])}
+        className="w-full bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 text-base text-left text-gray-900 dark:text-white px-4 py-3 font-medium transition-colors">
         <div className="flex justify-between items-center">
           Final Grade
           <HiArrowCircleRight/>
         </div>
-
       </motion.button>}
 
-{mcps &&   <motion.button
-      {...animationPropsHome} 
-      key="semester"
-      style={{borderWidth:1}}
-      onClick={()=>{setViewStack(["semester"])}}
-      className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold">
+{mcps && <motion.button
+        {...animationPropsHome}
+        key="semester"
+        onClick={() => setViewStack(["semester"])}
+        className="w-full bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 text-base text-left text-gray-900 dark:text-white px-4 py-3 font-medium transition-colors">
         <div className="flex justify-between items-center">
           Semester Grade
           <HiArrowCircleRight/>
-      </div>
-
-    </motion.button>}
+        </div>
+      </motion.button>}
 
 {
 //@ts-expect-error
 (client.guest && index!=-1) &&
     <motion.button
-      {...animationPropsHome} 
-      key="cats"
-      onClick={()=>{setViewStack(["cats"])}}
-      style={{borderWidth:1}}
-      className="dark:hover:bg-gray-800 bg-neutral-50 hover:bg-neutral-100 w-full dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 text-lg text-left dark:text-white p-2 font-semibold">
-      
+        {...animationPropsHome}
+        key="cats"
+        onClick={() => setViewStack(["cats"])}
+        className="w-full bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 text-base text-left text-gray-900 dark:text-white px-4 py-3 font-medium transition-colors">
         <div className="flex justify-between items-center">
           Categories
-        <HiArrowCircleRight/>
+          <HiArrowCircleRight/>
         </div>
-
-    </motion.button>
+      </motion.button>
 }  
   </React.Fragment>
   </motion.div>}
@@ -694,7 +679,7 @@ className="overflow-y-auto"
   <div className="flex justify-between items-center mb-3">
   <button
     style={{borderWidth:1,padding:5,borderRadius:12}}
-    className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+    className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
     onClick={()=>{setViewStack(["home"])}}
   >
     <div
@@ -717,10 +702,10 @@ className="overflow-y-auto"
     <table className="flex-1 mx-auto min-w-max text-left">
       {/* ── header ─────────────────────────────────────────── */}
       <thead>
-        <tr className="text-white md:text-xl dark:bg-slate-700">
-          <th className="px-4 py-2 font-semibold text-black dark:text-white">Letter</th>
-          <th className="px-4 py-2 font-semibold text-black dark:text-white">Lower</th>
-          <th className="px-4 py-2 font-semibold text-black dark:text-white">Upper</th>
+        <tr className="text-xs uppercase bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-400">
+          <th className="px-4 py-3 font-semibold">Letter</th>
+          <th className="px-4 py-3 font-semibold">Lower</th>
+          <th className="px-4 py-3 font-semibold">Upper</th>
 
           {/* empty heading to keep the delete column aligned */
       isMediumOrLarger && <th className="px-4 py-2" />
@@ -979,7 +964,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
    <div className="flex justify-between items-center mb-3">
   <button
     style={{borderWidth:1,padding:5,borderRadius:12}}
-    className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+    className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
     onClick={()=>{setViewStack(["home"])}}
   >
     <div
@@ -1014,7 +999,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
   >
     <table className="w-full">
       <thead>
-        <tr className="dark:bg-slate-700">
+        <tr className="dark:bg-gray-700">
           <th style={{textAlign:"center"}} className="py-2 dark:text-white">Type</th>
           <th style={{textAlign:"center"}} className="py-2 dark:text-white">Marking Period</th>
           {(settings.mode!="mcps" ||modify) && <th style={{textAlign:"center"}} className="py-2 dark:text-white">Course</th>}
@@ -1205,7 +1190,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
   <div className="flex justify-between items-center mb-3">
   <button
     style={{borderWidth:1,padding:5,borderRadius:12}}
-    className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+    className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
     onClick={()=>{setViewStack(["home"])}}
   >
     <div
@@ -1247,7 +1232,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
   >
     <table className="w-full">
       <thead>
-        <tr className="dark:bg-slate-700">
+        <tr className="dark:bg-gray-700">
           <th style={{textAlign:"center"}} className="py-2 dark:text-white">Type</th>
           <th style={{textAlign:"center"}} className="py-2 dark:text-white">Marking Period</th>
           {(settings.mode!="mcps"||modify) && <th style={{textAlign:"center"}} className="py-2 dark:text-white">Course</th>}
@@ -1429,7 +1414,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       <div className="flex justify-between items-center mb-3">
         <button
           style={{borderWidth:1,padding:5,borderRadius:12}}
-          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
           onClick={()=>{setViewStack(["home"])}}
         >
           <div
@@ -1467,7 +1452,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
   >
     <table className="w-full">
       <thead>
-        <tr className="dark:bg-slate-700">
+        <tr className="dark:bg-gray-700">
           <th style={{textAlign:"center"}} className="py-2 dark:text-white">Name</th>
           <th style={{textAlign:"center"}} className="py-2 pr-4 md:pr-0 dark:text-white">Weight</th>
           {true && <th style={{textAlign:"center"}} className="py-2 dark:text-white"></th>}
@@ -1581,7 +1566,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       <div className="flex justify-between items-center mb-4">
         <button
           style={{borderWidth:1, padding:5, borderRadius:12}}
-          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
           onClick={() => setViewStack(["home"])}
         >
           <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
@@ -1593,7 +1578,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         {pendingThemes.map((theme) => (
           <div
             key={theme.id}
-            className={`flex items-center justify-between p-3 rounded-lg border ${theme.active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847]'}`}
+            className={`flex items-center justify-between p-3 rounded-lg border ${theme.active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800'}`}
           >
             <button
               className="flex items-center gap-2.5 flex-1 text-left"
@@ -1666,7 +1651,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       <div className="flex justify-between items-center mb-4">
         <button
           style={{borderWidth:1, padding:5, borderRadius:12}}
-          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
           onClick={() => {
             const revertTo = pendingThemes.find(t => t.active);
             if (revertTo) applyTheme?.(revertTo);
@@ -1679,7 +1664,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] p-3">
+        <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800 p-3">
           <p className="dark:text-white font-semibold text-sm mb-1.5">Name</p>
           <input
             type="text"
@@ -1690,7 +1675,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           />
         </div>
 
-        <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] cursor-pointer">
+        <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800 cursor-pointer">
           <div className="flex items-center gap-1.5">
             <p className="dark:text-white font-semibold text-sm">Color</p>
             <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
@@ -1712,7 +1697,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           </div>
         </label>
 
-        <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] overflow-hidden">
+        <div className="rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800 overflow-hidden">
           <button className="flex items-center justify-between p-3 w-full" onClick={() => { setTitleOpen(v => !v); if (!titleOpen) setTimeout(() => titleInputRef.current?.focus(), 50); }}>
             <div className="flex items-center gap-1.5">
               <p className="dark:text-white font-semibold text-sm">Site Title</p>
@@ -1740,7 +1725,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           )}
         </div>
 
-        <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-[#2d3847] cursor-pointer">
+        <label className="flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800 cursor-pointer">
           <div className="flex items-center gap-1.5">
             <p className="dark:text-white font-semibold text-sm">Logo</p>
             <HiPencil size="0.8rem" className="text-gray-400 dark:text-gray-500" />
@@ -1863,7 +1848,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       <div className="flex justify-between items-center mb-4">
         <button
           style={{borderWidth:1, padding:5, borderRadius:12}}
-          className="-ml-3 dark:text-white font-semibold border-neutral-200 dark:border-gray-500 text-lg bg-neutral-50 hover:bg-neutral-100 dark:hover:bg-gray-800 dark:bg-[#2d3847]"
+          className="dark:text-white font-medium text-sm bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700 transition-colors"
           onClick={() => setViewStack(["home"])}
         >
           <div className="flex items-center"><HiArrowCircleLeft/><p>Back</p></div>
@@ -1872,7 +1857,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       </div>
 
       <div className="flex flex-col gap-3">
-        <div style={{borderWidth:1}} className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-3 flex justify-between items-center">
+        <div style={{borderWidth:1}} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 flex justify-between items-center">
           <p className="text-base font-semibold dark:text-white">Countdown</p>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" className="sr-only peer" checked={pendingShowCountdown} onChange={(e) => setPendingShowCountdown(e.target.checked)} />
@@ -1880,7 +1865,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
           </label>
         </div>
 
-        <div style={{borderWidth:1}} className="bg-neutral-50 dark:bg-[#2d3847] rounded-lg border-gray-400 dark:border-gray-500 p-3 flex justify-between items-center">
+        <div style={{borderWidth:1}} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 flex justify-between items-center">
           <div>
             <p className="text-base font-semibold dark:text-white">Highlight</p>
             {/* <p className="text-xs text-gray-500 dark:text-gray-400">Highlight the active class card</p> */}
@@ -1907,7 +1892,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
 
 
-<Modal.Footer>
+<Modal.Footer className="dark:bg-gray-800 dark:border-gray-700">
 <div className="-ml-2 w-full flex justify-start gap-5">
       <button
       className="text-white text-sm md:text-base hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 p-2 px-3 rounded-lg disabled:opacity-50 transition-none"

@@ -92,6 +92,7 @@ interface Course {
 	layoutID: number;
 	room: string;
 	weighted: boolean;
+	excluded?: boolean;
 	identifier:string;
 	settings:CourseSettings
 	grade: {
@@ -988,7 +989,7 @@ const addAssignment = (course: Course,uuid=crypto.randomUUID()): Course => {
 
 
 const calculateGPA = (grades: Grades): Grades => {
-	const valid = grades.courses.filter(c => !isNaN(c.grade.raw));
+	const valid = grades.courses.filter(c => !isNaN(c.grade.raw) && !c.excluded);
 	grades.gpa =
 		valid.reduce(
 			(a, b) => a + letterGPA(letterGrade(b.grade.raw, b.settings), false),
@@ -1000,6 +1001,12 @@ const calculateGPA = (grades: Grades): Grades => {
 			0
 		) / (valid.length || 1);
 
+	return { ...grades };
+};
+
+const excludeGPA = (grades: Grades, i: number, val: boolean): Grades => {
+	grades.courses[i].excluded = val;
+	grades = calculateGPA(grades);
 	return { ...grades };
 };
 
@@ -1508,6 +1515,7 @@ export {
 	findCurrentPeriod,
 	calculateGPA,
 	updateGPA,
+	excludeGPA,
 	abbreviate,
 	reCalculateCourse,reCalculateAll,letterGradeColor,letterGrade,getCache,simplifyWeights,initalizeFinals2
 };

@@ -107,6 +107,10 @@ function MyApp({ Component, pageProps }) {
 	);
 	const [client, setClient] = useState<Awaited<ReturnType<typeof StudentVue.login>>["client"]>(undefined);
 	const [settingsModal,setSettingsModal]=useState<boolean>(false);
+	useEffect(() => {
+		document.body.style.overflow = settingsModal ? 'hidden' : '';
+		return () => { document.body.style.overflow = ''; };
+	}, [settingsModal]);
 	const [showCountdown,setShowCountdown]=useState<boolean>(true);
 	const [highlightColor,setHighlightColor]=useState<string|null>(null);
 	const [siteTitle,setSiteTitle]=useState<string>("");
