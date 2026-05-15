@@ -379,7 +379,7 @@ export default function Grades({
 									<th className="py-3 px-4">Course</th>
 									<th className="py-3 px-4">Grade</th>
 									<th className="py-3 px-4">AP/Weighted</th>
-									<th className="py-3 px-4">Exclude</th>
+									<th className="py-3 px-4">Include</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -405,9 +405,9 @@ export default function Grades({
 											</td>
 											<td className="py-2 px-4">
 												<label className="relative inline-flex items-center cursor-pointer">
-													<input type="checkbox" checked={!included} className="sr-only peer"
-														onChange={(e) => changeExcluded(e, i)} />
-													<div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500 peer-focus:ring-2 peer-focus:ring-red-300 dark:peer-focus:ring-red-800" />
+													<input type="checkbox" checked={included} className="sr-only peer"
+														onChange={(e) => { const clone = structuredClone(grades); clone[mp] = excludeGPA(clone[mp], i, !e.target.checked); setGrades(clone); }} />
+													<div className="w-9 h-5 bg-gray-200 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600 peer-focus:ring-2 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800" />
 												</label>
 											</td>
 										</tr>
@@ -419,7 +419,7 @@ export default function Grades({
 				</Modal.Body>
 				<Modal.Footer className="dark:bg-gray-800 dark:border-gray-700">
 					<button onClick={() => setGpaModal(false)}
-						className="rounded-lg bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+						className="rounded-lg bg-gray-500 p-2 px-3 text-sm md:text-base text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-colors duration-200">
 						Close
 					</button>
 				</Modal.Footer>

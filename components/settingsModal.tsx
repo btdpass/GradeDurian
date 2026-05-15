@@ -562,12 +562,13 @@ show={showModal}
 //onClose={()=>{ applyPalette((settings as any).primaryColor || DEFAULT_PRIMARY); onColorPreview?.((settings as any).primaryColor || DEFAULT_PRIMARY); setSiteTitle((settings as any).siteTitle ?? ""); setCustomLogo(customLogo ?? ""); setShowModal(false); setViewStack(["home"])}}
 onClose={() => handleCancelAndReset()}
 className={!isMediumOrLarger && `bg-transparent`}
+size="3xl"
 >
 
 <Modal.Header className="dark:bg-gray-800 dark:border-gray-700">
 
 <p className="text-2xl">{index === -1 ? 'Settings' : 'Class Settings'} <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
-{index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>}
+{/* {index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>} */}
 </Modal.Header>
 
 
@@ -1893,9 +1894,9 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
 
 <Modal.Footer className="dark:bg-gray-800 dark:border-gray-700">
-<div className="-ml-2 w-full flex justify-start gap-5">
+<div className="w-full flex justify-start gap-3">
       <button
-      className="text-white text-sm md:text-base hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 p-2 px-3 rounded-lg disabled:opacity-50 transition-none"
+      className="text-white text-sm md:text-base hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 p-2 px-3 rounded-lg disabled:opacity-50 transition-colors duration-200"
       disabled={currentView === "themeeditor" && !themeEditorData.name.trim()}
       onClick={() => {
         if (currentView === "themeeditor") {
@@ -1938,7 +1939,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       </button>
 
       <button
-        className="text-white md:text-base bg-gray-500 hover:bg-gray-700 dark:bg-gray-800 dark:hover:bg-gray-900 p-2 px-3 rounded-lg text-sm transition-none"
+        className="rounded-lg bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-colors duration-200"
         onClick={() => {
           if (currentView === "themeeditor") {
             const revertTo = pendingThemes.find(t => t.active);
@@ -1955,7 +1956,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       {index ==-1 &&
           <button
         type="button"
-        className="ml-auto -mr-2  md:text-base text-white bg-primary-600 hover:bg-primary-800 active:bg-primary-500 px-2  rounded-lg text-sm"
+        className="ml-auto md:text-base text-white bg-primary-600 hover:bg-primary-800 active:bg-primary-500 px-3 p-2 rounded-lg text-sm transition-colors duration-200"
         style={{}}
         onClick={()=>{resetAllClasses()}}
       >
