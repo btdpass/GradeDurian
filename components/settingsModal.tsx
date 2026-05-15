@@ -155,6 +155,11 @@ export default function SettingsModal({client,index,showModal,setShowModal,grade
 
 
 
+useEffect(() => {
+  document.body.style.overflow = showModal ? 'hidden' : '';
+  return () => { document.body.style.overflow = ''; };
+}, [showModal]);
+
 useEffect(()=>{
   if(!showModal) return;
   originalDefault.current = structuredClone(settings.default)
@@ -566,16 +571,14 @@ size="3xl"
 >
 
 <Modal.Header className="dark:bg-gray-800 dark:border-gray-700">
-
-<p className="text-2xl">{index === -1 ? 'Settings' : 'Class Settings'} <span style={{textOverflow:"ellipsis"}}  className="text-sm">{course.name}</span></p>
-{/* {index==-1 && <p className="text-sm">Changes here will be the default for all your classes!</p>} */}
+	<div className="flex flex-col gap-0.5">
+		<p className="text-xl font-semibold text-gray-900 dark:text-white">{index === -1 ? 'Settings' : 'Class Settings'}</p>
+		{index !== -1 && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{course.name}</p>}
+	</div>
 </Modal.Header>
 
 
-<Modal.Body
-style={{maxHeight:isMediumOrLarger ? 400 : 500,minHeight:400}}
-className="overflow-y-auto dark:bg-gray-800"
->
+<Modal.Body style={{maxHeight:isMediumOrLarger ? 400 : 500,minHeight:400}} className="overflow-y-auto dark:bg-gray-800">
 {
 
 //Settings Select Page
@@ -996,7 +999,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
   <div
     style={{maxHeight:350}}
-    className="border-gray-600 rounded-lg border mt-2 overflow-x-auto overflow-y-auto -ml-2"
+    className="border-gray-600 rounded-lg border mt-2 overflow-x-auto overflow-y-auto"
   >
     <table className="w-full">
       <thead>
@@ -1031,7 +1034,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
             setFinals(temp)
 
            }}
-           className="bg-transparent dark:text-white border-0 focus:outline-none focus:ring-0"
+           className="bg-transparent dark:text-white border-0 focus:outline-none focus:ring-0 text-sm"
             >
               <option className="bg-gray-600" value="course">Course</option>
               <option className="bg-gray-600" value="exam">Exam</option>
@@ -1229,16 +1232,16 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
   <div
     style={{maxHeight:350}}
-    className="border-gray-600 rounded-lg border mt-2 overflow-x-auto overflow-y-auto -ml-2"
+    className="border-gray-200 dark:border-gray-700 rounded-lg border mt-2 overflow-x-auto overflow-y-auto"
   >
-    <table className="w-full">
-      <thead>
-        <tr className="dark:bg-gray-700">
-          <th style={{textAlign:"center"}} className="py-2 dark:text-white">Type</th>
-          <th style={{textAlign:"center"}} className="py-2 dark:text-white">Marking Period</th>
-          {(settings.mode!="mcps"||modify) && <th style={{textAlign:"center"}} className="py-2 dark:text-white">Course</th>}
-          <th style={{textAlign:"center"}} className="py-2 pr-4 md:pr-0 dark:text-white">Weight</th>
-          {isMediumOrLarger && <th style={{textAlign:"center"}} className="py-2 dark:text-white"></th>}
+    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+      <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <tr>
+          <th className="py-3 px-4">Type</th>
+          <th className="py-3 px-4">Marking Period</th>
+          {(settings.mode!="mcps"||modify) && <th className="py-3 px-4">Course</th>}
+          <th className="py-3 px-4">Weight</th>
+          {isMediumOrLarger && <th className="py-3 px-4"></th>}
         </tr>
       </thead>
       
@@ -1246,10 +1249,8 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
       <tbody>
        {semester.categories.map((f,i)=>(
         <React.Fragment key={i}>
-        <tr className={i % 2 === 0 ? "bg-neutral-100 dark:bg-gray-900" : "dark:bg-gray-800"}>
-          <td 
-          style={{textAlign:"center"}}
-          >
+        <tr className={`h-12 border-b dark:border-gray-700 ${i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"}`}>
+          <td className="py-2 px-4">
 
                 {
             //temporarily doing this really stupidly
@@ -1263,7 +1264,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
             setFinals(temp)
 
            }}
-           className="bg-transparent dark:text-white border-0 focus:outline-none focus:ring-0"
+           className="bg-transparent dark:text-white border-0 focus:outline-none focus:ring-0 text-sm"
             >
               <option className="bg-gray-600" value="course">Course</option>
               <option className="bg-gray-600" value="exam">Exam</option>
@@ -1273,89 +1274,58 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
           </td>
 
-          <td
-            style={{textAlign:"center"}}
-          >
+          <td className="py-2 px-4">
             <select value={f.mp} onChange={(e)=>{
               let temp=structuredClone(finals)
               temp.semesters[j].categories[i].mp=parseInt(e.target.value)
               const index=grades[parseInt(e.target.value)].courses.findIndex(c=>c.identifier==course.identifier)
               temp.semesters[j].categories[i].courseIndex=index!=-1 ? index : NaN
               setFinals(temp)
-
             }}
-              className="bg-transparent dark:text-white border-0 text-elipses focus:outline-none focus:ring-0"
+              className="bg-transparent dark:text-white border-0 focus:outline-none focus:ring-0 text-sm"
             >
               {grades?.[period]?.periods.map(p=>(<option className="bg-gray-600" key={p.index} value={p.index}>{p.name}</option>))}
             </select>
           </td>
 
-
-{(settings.mode!="mcps"||modify)  && <td
-            style={{textAlign:"center"}}
-          >
-         
+{(settings.mode!="mcps"||modify) && <td className="py-2 px-4">
             <select value={f.courseIndex}
-       //     disabled={settings.mode=="automatic"} why have it at all if we disabling it tbh
-              className={`bg-transparent ${true ? "text-gray-500" : "dark:text-white"} border-0 focus:outline-none focus:ring-0`}
+              className="bg-transparent text-gray-500 border-0 focus:outline-none focus:ring-0 text-sm"
               onChange={(e)=>{
                 let temp=structuredClone(finals)
                 temp.semesters[j].categories[i].courseIndex=parseInt(e.target.value)
                 setFinals(temp)
-
               }}
             >
-        <option className="bg-gray-600" value={NaN}>Auto/Unknown</option>
-        {grades[f.mp].courses.map((c,k)=>(
-          <option className="bg-gray-600" key={k} value={k}>{c.name.trim()}</option>
-
-        ))}
-            
+              <option className="bg-gray-600" value={NaN}>Auto/Unknown</option>
+              {grades[f.mp].courses.map((c,k)=>(
+                <option className="bg-gray-600" key={k} value={k}>{c.name.trim()}</option>
+              ))}
             </select>
-            
-            
           </td>}
 
-          <td
-            style={{textAlign:"center"}}
-          >
-            <div
-              className="text-center dark:text-white flex items-center mt-2 md:ml-5"
-            >
+          <td className="py-2 px-4">
             <input
-            className="bg-transparent w-12 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary-500 rounded-lg border-none p-0 md:ml-5"
-            type="text"
-            onFocus={(e)=>setKill([i,e.target.value.replaceAll("%","")])}
-            onChange={(e)=>{
-              setKill([i,e.target.value.replaceAll("%","")])
-            }}
-            onBlur={(e)=>{
-              let temp=structuredClone(finals)
-              temp.semesters[j].categories[i].weight=parseFloat(e.target.value.replaceAll("%",""))/100
-              setFinals(temp)
-              setKill([NaN,""])
-            }}
-            value={kill[0]==i ? kill[1] : Number((f.weight*100).toFixed(4)) + "%"}
+              className="bg-transparent w-14 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary-500 rounded-lg border-none p-0 text-sm"
+              type="text"
+              onFocus={(e)=>setKill([i,e.target.value.replaceAll("%","")])}
+              onChange={(e)=>setKill([i,e.target.value.replaceAll("%","")])}
+              onBlur={(e)=>{
+                let temp=structuredClone(finals)
+                temp.semesters[j].categories[i].weight=parseFloat(e.target.value.replaceAll("%",""))/100
+                setFinals(temp)
+                setKill([NaN,""])
+              }}
+              value={kill[0]==i ? kill[1] : Number((f.weight*100).toFixed(4)) + "%"}
             />
-            </div>
-   
           </td>
 
-  {isMediumOrLarger && <td>
+  {isMediumOrLarger && <td className="py-2 px-4 text-right">
             <button
               onClick={() => {deleteSemesterCategory(j,i)}}
-              className="
-                  flex items-center gap-1
-                  rounded-lg bg-primary-500
-                  px-2 py-2 my-1
-                  text-xs font-medium text-white
-                  hover:bg-primary-600
-                  focus:outline-none focus:ring-4 focus:ring-primary-300
-                  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800
-                  sm:text-sm
-                "
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-500 text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 transition-colors duration-200"
             >
-              <HiOutlineTrash size="1.2rem" />
+              <HiOutlineTrash size="1rem" />
             </button>
           </td>}
 
@@ -1363,25 +1333,16 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         </tr>
 
 
-   {!isMediumOrLarger  && <tr className={i % 2 === 0 ? "bg-neutral-100 dark:bg-gray-900" : "dark:bg-gray-800"}>
-        <td colSpan={settings.mode!="mcps" ? 3 : 4}>
+   {!isMediumOrLarger && <tr className={`border-b dark:border-gray-700 ${i % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"}`}>
+        <td colSpan={settings.mode!="mcps" ? 3 : 4} className="px-4 pb-2">
            <button
                 onClick={() => {deleteSemesterCategory(j,i)}}
-                className="
-                  flex items-center gap-1 ml-2 -mt-1 mb-1
-                  rounded-lg bg-primary-500
-                  text-xs font-medium text-white
-                  hover:bg-primary-600
-                  px-1
-                  focus:outline-none focus:ring-4 focus:ring-primary-300
-                  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800
-                  sm:text-sm
-                "
+                className="flex items-center gap-1 rounded-lg bg-primary-500 px-2 py-1.5 text-xs font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 transition-colors duration-200"
               >
-                <p className="dark:text-white">Delete</p>
+                <HiOutlineTrash size="1rem" />
+                <p>Delete</p>
               </button>
         </td>
-
         </tr>}
         </React.Fragment>
 ))}
@@ -1390,10 +1351,10 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
     </table>
     </div>
     <div className="flex justify-between">
-     <button className="-ml-2 mt-2 p-2 px-2 bg-primary-500 dark:bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+     <button className="mt-2 p-2 px-2 bg-primary-500 dark:bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
      onClick={()=>{addSemesterCategory(j)}}>Add+</button>
-   
-       <button className="-ml-2 mt-2 p-2 px-2 bg-primary-500 dark:bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+
+       <button className="mt-2 p-2 px-2 bg-primary-500 dark:bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
      onClick={()=>{showDefaults("semester")}}>Show Defaults</button>
    
 
@@ -1449,7 +1410,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
 
    <div
     style={{maxHeight:350}}
-    className="border-gray-600 rounded-lg border mt-2 overflow-x-auto overflow-y-auto -ml-2"
+    className="border-gray-600 rounded-lg border mt-2 overflow-x-auto overflow-y-auto"
   >
     <table className="w-full">
       <thead>
@@ -1579,7 +1540,7 @@ onToggle={()=>setAdvancedOpen(!advancedOpen)}
         {pendingThemes.map((theme) => (
           <div
             key={theme.id}
-            className={`flex items-center justify-between p-3 rounded-lg border ${theme.active ? 'border-gray-400 dark:border-gray-400 bg-neutral-200 dark:bg-gray-600' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800'}`}
+            className={`flex items-center justify-between p-3 rounded-lg border ${theme.active ? 'border-gray-300 dark:border-gray-600 bg-neutral-100 dark:bg-gray-700' : 'border-gray-300 dark:border-gray-600 bg-neutral-50 dark:bg-gray-800'}`}
           >
             <button
               className="flex items-center gap-2.5 flex-1 text-left"

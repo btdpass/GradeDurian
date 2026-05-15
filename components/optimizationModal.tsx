@@ -38,7 +38,7 @@ const animationPropsHome = {
     initial: { x: "100%", opacity: 0 },
     animate: { x: 0, opacity: 1 },
     exit: { x: "-100%", opacity: 0 },
-    transition: { duration: 0.1 },
+    transition: { duration: 0.15 },
 };
 
 const animationPropsPage=animationPropsHome //for now
@@ -298,52 +298,37 @@ TODO:
 
 
 
+    useEffect(() => {
+        document.body.style.overflow = showModal ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [showModal]);
+
     return(
-        <Modal show={showModal} onClose={()=>{setShowModal(false)}} className={`${!isMediumOrLarger && "bg-transparent"}`}>
-                <Modal.Header className="text-xl font-medium text-gray-900 dark:text-white">
+        <Modal show={showModal} onClose={()=>{setShowModal(false)}} size="3xl" className={`${!isMediumOrLarger && "bg-transparent"}`}>
+                <Modal.Header className="dark:bg-gray-800 dark:border-gray-700">
                     Optimize Grade
                 </Modal.Header>
-                <Modal.Body
-                style={{maxHeight:400,minHeight:400}}
-                className="overflow-y-auto"
-                >
+                <Modal.Body style={{maxHeight:400,minHeight:400}} className="overflow-y-auto dark:bg-gray-800">
 
-                <div className="flex gap-6 justify-center mb-2 w-[80%] mx-auto">
-        <button
-            style={{ borderWidth: 1, padding: 5, borderRadius: 12 }}
-            className={`-ml-3 font-semibold border-neutral-200 dark:border-gray-500 text-lg  flex-1
-            ${viewStack.at(-1) === "quarter"
-                ? "bg-neutral-300 dark:bg-gray-800 dark:text-white text-gray-500 cursor-not-allowed"
-                : "bg-neutral-50 hover:bg-neutral-100 dark:bg-gray-700 dark:hover:bg-gray-800 dark:text-white"
-            }`}
-            onClick={() => setViewStack(["quarter"])}
-            disabled={viewStack.at(-1) === "quarter"}
-        >
-            <div className="flex items-center">
-            <p>Quarter</p>
-            </div>
-        </button>
-
-        <button
-            style={{ borderWidth: 1, padding: 5, borderRadius: 12 }}
-            className={`-ml-3 font-semibold border-neutral-200 dark:border-gray-500 text-lg flex-1
-            ${viewStack.at(-1) === "finals"
-                ? "bg-neutral-300 dark:bg-gray-800 dark:text-white text-gray-500 cursor-not-allowed"
-                : "bg-neutral-50 hover:bg-neutral-100 dark:bg-gray-700 dark:hover:bg-gray-800 dark:text-white"
-            }`}
-            onClick={() => setViewStack(["finals"])}
-            disabled={viewStack.at(-1) === "finals"}
-        >
-            <div className="flex items-center">
-            <p>{course?.settings.finals?.show ? "Finals" : "Semester"}</p>
-            </div>
-        </button>
+                <div className="flex gap-2 mb-4">
+            <button
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium border transition-colors duration-200 ${viewStack.at(-1) === "quarter" ? "bg-primary-500 border-primary-500 text-white" : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"}`}
+                onClick={() => setViewStack(["quarter"])}
+            >
+                Quarter
+            </button>
+            <button
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium border transition-colors duration-200 ${viewStack.at(-1) === "finals" ? "bg-primary-500 border-primary-500 text-white" : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"}`}
+                onClick={() => setViewStack(["finals"])}
+            >
+                {course?.settings.finals?.show ? "Finals" : "Semester"}
+            </button>
         </div>
 
         <AnimatePresence
         mode="wait"
         key="killMePlease"
-        initial={true}
+        initial={false}
         >
 
 
@@ -700,21 +685,21 @@ TODO:
                 </motion.div> }
             </AnimatePresence>
                 </Modal.Body>
-                <Modal.Footer>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="rounded-lg bg-gray-500 px-2.5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
-                            >
-                                Close
-                            </button>
-                            <button
-                                onClick={viewStack.at(-1)=="finals" ? solveFinal : optimizeGrades}
-                                className="rounded-lg bg-primary-500 px-2.5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-                            >
-                                Optimize
-                            </button>
-                        </div>
+                <Modal.Footer className="dark:bg-gray-800 dark:border-gray-700">
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className="rounded-lg bg-gray-500 p-2 px-3 text-sm md:text-base text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-colors duration-200"
+                        >
+                            Close
+                        </button>
+                        <button
+                            onClick={viewStack.at(-1)=="finals" ? solveFinal : optimizeGrades}
+                            className="rounded-lg bg-primary-500 p-2 px-3 text-sm md:text-base text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 transition-colors duration-200"
+                        >
+                            Optimize
+                        </button>
+                    </div>
                 </Modal.Footer>
             </Modal>
 

@@ -107,6 +107,10 @@ export default function Grades({
 	const [loading, setLoading] = useState(grades ? false : true);
 	const [assignmentsModal, setAssignmentsModal] = useState(false);
 	const [optimizationModal,setOptimizationModal] = useState(false)
+	useEffect(() => {
+		document.body.style.overflow = assignmentsModal ? 'hidden' : '';
+		return () => { document.body.style.overflow = ''; };
+	}, [assignmentsModal]);
 	const [modalDetails, setModalDetails] = useState(0);
 	const [isEditing, setIsEditing]=useState(false);
 	const [title,setTitle]=useState(undefined);
@@ -410,12 +414,12 @@ export default function Grades({
 
 	return (
 		<>			{!loading && <>
-			<ClientOnly><Modal show={assignmentsModal} onClose={() => {setAssignmentsModal(false);setModalBg(false)}} className={!isMediumOrLarger && `bg-transparent`}>
-				<Modal.Header className="text-xl font-medium text-gray-900 dark:text-white">
+			<ClientOnly><Modal show={assignmentsModal} onClose={() => {setAssignmentsModal(false);setModalBg(false)}} size="3xl" className={!isMediumOrLarger && `bg-transparent`}>
+				<Modal.Header className="dark:bg-gray-800 dark:border-gray-700">
 					{ (isEditing ? (<input onFocus={handleFocus} className="border-none bg-transparent focus:outline-none focus:ring-0 p-0 text-xl font-medium" type="text" onChange={handleChange} ref={assignmentTitle} autoFocus onBlur={handleTitleChange} value={title}></input>) : (<p onClick={course?.assignments[modalDetails]?.custom ? editTitle : ()=>{}}>{title}</p>))
 					}
 				</Modal.Header>
-				<Modal.Body>
+				<Modal.Body className="dark:bg-gray-800">
 						<div id="assignment-details">
 							<p className="font-bold text-black dark:text-white">Grade</p>
 							<p
@@ -452,11 +456,11 @@ export default function Grades({
 							</p>
 						</div>
 				</Modal.Body>
-				<Modal.Footer>
-						<div className="flex gap-2">
+				<Modal.Footer className="dark:bg-gray-800 dark:border-gray-700">
+						<div className="flex gap-3">
 							<button
 								onClick={() => {setAssignmentsModal(false);setModalBg(false)}}
-								className="rounded-lg bg-gray-500 px-2.5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
+								className="rounded-lg bg-gray-500 p-2 px-3 text-sm md:text-base text-white hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-colors duration-200"
 							>
 								Close
 							</button>
@@ -466,15 +470,14 @@ export default function Grades({
 									setAssignmentsModal(false);
 									setModalBg(false);
 								}}
-								className="rounded-lg bg-primary-500 px-2.5 py-2.5 text-center text-xs sm:text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+								className="rounded-lg bg-red-500 p-2 px-3 text-sm md:text-base text-white hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800 transition-colors duration-200"
 							>
-								<div className="flex gap-1 items-center">
-									<HiOutlineTrash size={"1.2rem"} />
+								<div className="flex gap-1.5 items-center">
+									<HiOutlineTrash size={"1.1rem"} />
 									Delete
 								</div>
 							</button>
 						</div>
-
 				</Modal.Footer>
 			</Modal></ClientOnly>
 
@@ -667,9 +670,14 @@ export default function Grades({
 						</button>
 					</div>
 					<div className="m-5" />
-					<div className="flex">
-					<div className="mx-auto overflow-x-auto shadow-md rounded-lg border max-w-max border-gray-200 dark:border-gray-700">
-						<table className="text-sm text-left text-gray-500 dark:text-gray-400">
+					<div className="w-full overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
+						<table className="w-full text-sm text-left text-gray-500 dark:text-gray-400" style={{ tableLayout: "fixed", minWidth: "600px" }}>
+							<colgroup>
+								<col style={{ width: "110px" }} />
+								<col />
+								<col style={{ width: "150px" }} />
+								<col style={{ width: "230px" }} />
+							</colgroup>
 							<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 								<tr>
 									<th scope="col" className="py-3 md:pl-6 text-center md:text-left">
@@ -750,7 +758,6 @@ export default function Grades({
 			))})()}
 							</tbody>
 						</table>
-					</div>
 					</div>
 				</motion.div>
 			)}

@@ -359,7 +359,7 @@ export default function Grades({
 			{
 			<ClientOnly><Modal show={gpaModal} onClose={() => setGpaModal(false)} size="3xl">
 				<Modal.Header className="dark:bg-gray-800 dark:border-gray-700">GPA Calculator</Modal.Header>
-				<Modal.Body className="p-0 dark:bg-gray-800">
+				<Modal.Body style={{maxHeight:400,minHeight:400}} className="overflow-y-auto p-0 dark:bg-gray-800">
 					{/* Summary bar */}
 					<div className="flex gap-8 px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
 						<div>
