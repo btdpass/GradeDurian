@@ -3,7 +3,7 @@ import { Spinner } from "flowbite-react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
-import { TbRefresh, TbMathSymbols } from "react-icons/tb";
+import { TbRefresh, TbMathSymbols, TbLayoutList, TbTable } from "react-icons/tb";
 import {
 	parseGrades,
 	Grades as GradesType,parseDate,findCurrentPeriod,getCache,Cache,calcFinal,
@@ -497,6 +497,18 @@ export default function Grades({
 							className="bg-primary-500 border border-primary-500 focus:outline-none hover:bg-primary-600 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm p-2.5 dark:bg-primary-600 text-white dark:hover:bg-primary-700 dark:focus:ring-primary-400"
 						>
 							<TbMathSymbols size={"1.3rem"} />
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								const next = view === "card" ? "table" : "card";
+								setDefaultView(next);
+								localStorage.setItem("defaultView", next);
+								router.push({ query: { ...router.query, view: next } }, undefined, { shallow: true });
+							}}
+							className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+						>
+							{view === "card" ? <TbTable size={"1.3rem"} /> : <TbLayoutList size={"1.3rem"} />}
 						</button>
 
 						

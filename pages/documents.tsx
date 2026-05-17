@@ -124,7 +124,7 @@ export default function Documents({ client, createError }: DocumentsProps) {
 										{document.file.date.toLocaleDateString()}
 									</td>
 									<td className={cell}>{document.file.type}</td>
-									<td className={`${cell} text-gray-900 dark:text-white`}>{document.comment}</td>
+									<td className={cell}>{document.comment}</td>
 									<td className="py-3 px-6 whitespace-nowrap">
 										<div className="flex items-center justify-end gap-2">
 											<button

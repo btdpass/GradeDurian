@@ -39,7 +39,7 @@ export default function GradeField({ value, onChange,onBlur=()=>{} }: GradeField
 			className="cursor-pointer"
 		>
 			{!focus ? (
-				<p className="p-2 w-auto md:w-12 text-center">
+				<p className="py-2">
 				{!isNaN(value) ? value : "NG"}
 				</p>
 			) : (

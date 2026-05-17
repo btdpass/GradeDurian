@@ -12,7 +12,6 @@ import {
 	Grades as GradesType,calcFinal,
 	Course,getCache,
 	genTable,
-	abbreviate,
 	letterGradeColor,letterGrade,Cache,
 	findCurrentPeriod,
 	SchoolsListType
@@ -105,7 +104,7 @@ export default function Grades({
 	const [index,setIndex] = useState(parseInt(String(router.query.index))); //you could've just parseInt'd it here but u didnt' and now i'm too lazy to refactor i hate u
 	const course = grades?.[mp]?.courses[index];
 	const [loading, setLoading] = useState(grades ? false : true);
-	const [assignmentsModal, setAssignmentsModal] = useState(false);
+const [assignmentsModal, setAssignmentsModal] = useState(false);
 	const [optimizationModal,setOptimizationModal] = useState(false)
 	useEffect(() => {
 		document.body.style.overflow = assignmentsModal ? 'hidden' : '';
@@ -548,8 +547,7 @@ export default function Grades({
 								style={{alignSelf:"end"}}
 								size={30}
 								onClick={()=>toggleSettings(true)}
-					
-					/>}
+							/>}
 					</motion.h1>
 					<div
 					className=""
@@ -670,95 +668,104 @@ export default function Grades({
 						</button>
 					</div>
 					<div className="m-5" />
-					<div className="w-full overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
-						<table className="w-full text-sm text-left text-gray-500 dark:text-gray-400" style={{ tableLayout: "fixed", minWidth: "600px" }}>
-							<colgroup>
-								<col style={{ width: "110px" }} />
-								<col />
-								<col style={{ width: "150px" }} />
-								<col style={{ width: "230px" }} />
-							</colgroup>
-							<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-								<tr>
-									<th scope="col" className="py-3 md:pl-6 text-center md:text-left">
-										Date
-									</th>
-									<th scope="col" className="py-3 md:px-6 text-center md:text-left">
-										Assignment
-									</th>
-									<th scope="col" className="py-3 md:px-6 pr-3 text-center md:text-left">
-										Score
-									</th>
-									<th scope="col" className="py-3 md:px-6 pr-3">
-										Category
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								{(()=>{
-									return(grades?.[mp].courses[index]?.assignments.map(
-									({ name, date, grade, category, points, custom,included}, i) => {
-										var trueIndex:number = i;
 
-										return(
-										<tr
-											className={`bg-${
-												i % 2 == 0 ? "white" : "gray-50"
-											} border-b dark:bg-gray-${
-												i % 2 == 0 ? 900 : 800
-											} dark:border-gray-700`}
-											key={i}
-										>
-											<td className="py-4 md:pl-6 pl-2 text-center md:text-left">
-												{date.due.toLocaleDateString()}
-											</td>
-											<td
-												className={`py-4 md:px-6 px-3 text-center ${Boolean(custom) && "text-primary-500"} ${!included && "text-[#4d462d]"} md:text-left hover:text-${included ? 'black' : 'gray'} dark:hover:text-${included ? "white" : "gray"} cursor-pointer`}
-												onClick={() => OpenModal(trueIndex)}
+					<div className="w-full overflow-x-auto shadow-md rounded-lg border border-gray-200 dark:border-gray-700">
+							<table className="w-full text-sm text-left text-gray-500 dark:text-gray-400" style={{ tableLayout: "fixed", minWidth: "600px" }}>
+								<colgroup>
+									<col style={{ width: "100px" }} />
+									<col />
+									<col style={{ width: "120px" }} />
+									<col style={{ width: isMediumOrLarger ? "240px" : "170px" }} />
+									<col style={{ width: "50px" }} />
+								</colgroup>
+								<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+									<tr>
+										<th scope="col" className="py-3 pl-4 pr-6 text-left">
+											Date
+										</th>
+										<th scope="col" className="py-3 px-6 text-left">
+											Assignment
+										</th>
+										<th scope="col" className="py-3 px-6 text-left">
+											Score
+										</th>
+										<th scope="col" className="py-3 pl-6 pr-4 text-left">
+											Category
+										</th>
+										<th scope="col" className="py-3"></th>
+									</tr>
+								</thead>
+								<tbody>
+									{(()=>{
+										return(grades?.[mp].courses[index]?.assignments.map(
+										({ name, date, grade, category, points, custom,included}, i) => {
+											var trueIndex:number = i;
+
+											return(
+											<tr
+												className={`bg-${
+													i % 2 == 0 ? "white" : "gray-50"
+												} border-b dark:bg-gray-${
+													i % 2 == 0 ? 900 : 800
+												} dark:border-gray-700`}
+												key={i}
 											>
-												{name}
-											</td>
-											<td className="py-4 md:px-6 pl-3 pr-2 text-center md:text-left">
-												<div
-													style={{color:included && (grade.color.includes('#') && grade.color)}}
-													className={`flex items-center gap-2 ${included ? `text-${grade.color}-400` : 'text-[#4d462d]'}`}
+												<td className="py-4 pl-4 pr-6 text-left">
+													{date.due.toLocaleDateString()}
+												</td>
+												<td
+													className={`py-4 px-6 text-left ${Boolean(custom) && "text-primary-500"} ${!included && "text-[#4d462d]"}`}
 												>
-													<GradeField
-														onChange={(e) =>
-															updateGrade(e.target.value, trueIndex, "earned")
-														}
-														value={points.earned}
-													/>
-													<p className="">/</p>
-													<GradeField
-														onChange={(e) =>
-															updateGrade(e.target.value, trueIndex, "possible")
-														}
-														value={points.possible}
-													/>
-												</div>
-											</td>
-											<td className="py-4 md:px-6 pr-1 text-center md:text-left">
-												<CategoryField
-													value={course?.categories.findIndex(
-														(c) => category === c.name
-													)}
-													onChange={(e) => updateCat(e.target.value, trueIndex)}
-													name={isMediumOrLarger ? category : abbreviate(category)}
-												>
-													{course?.categories.map((category, x) => (
-														<option value={x} key={x}>
-															{category.name}
-														</option>
-													))}
-												</CategoryField>
-											</td>
-										</tr>
-									)}
-			))})()}
-							</tbody>
-						</table>
-					</div>
+													{name}
+												</td>
+												<td className="py-4 px-6 text-left">
+													<div
+														style={{color:included && (grade.color.includes('#') && grade.color)}}
+														className={`flex items-center gap-2 ${included ? `text-${grade.color}-400` : 'text-[#4d462d]'}`}
+													>
+														<GradeField
+															onChange={(e) =>
+																updateGrade(e.target.value, trueIndex, "earned")
+															}
+															value={points.earned}
+														/>
+														<p className="">/</p>
+														<GradeField
+															onChange={(e) =>
+																updateGrade(e.target.value, trueIndex, "possible")
+															}
+															value={points.possible}
+														/>
+													</div>
+												</td>
+												<td className="py-4 pl-6 pr-4 text-left">
+													<CategoryField
+														value={course?.categories.findIndex(
+															(c) => category === c.name
+														)}
+														onChange={(e) => updateCat(e.target.value, trueIndex)}
+													>
+														{course?.categories.map((category, x) => (
+															<option value={x} key={x}>
+																{category.name}
+															</option>
+														))}
+													</CategoryField>
+												</td>
+												<td className="py-4 pr-4 text-center">
+													<button
+														onClick={() => OpenModal(trueIndex)}
+														className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+													>
+														<HiOutlineTrash size="1.1rem" />
+													</button>
+												</td>
+											</tr>
+										)}
+				))})()}
+								</tbody>
+							</table>
+						</div>
 				</motion.div>
 			)}
 		</motion.div></>
