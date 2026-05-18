@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  background-color: #f9fafb;
+}
+.dark body {
+  background-color: #111827;
+}
+
 :root {
     --primary-50:  254 253 240;
     --primary-100: 253 248 208;

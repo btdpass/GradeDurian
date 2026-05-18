@@ -348,7 +348,9 @@ function MyApp({ Component, pageProps }) {
 		}
 		const w = window.open('about:blank', '_blank');
 		if (w) {
-			w.document.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ''}/favicon.ico"><style>*{margin:0;padding:0;border:0;overflow:hidden}html,body{width:100%;height:100%}</style></head><body><iframe id="f" src="${window.location.href}" style="width:100%;height:100%;border:none;"></iframe><script>const f=document.getElementById('f');f.addEventListener('load',function(){try{const t=f.contentDocument.querySelector('title');if(t){document.title=t.innerText;new MutationObserver(()=>{document.title=t.innerText;}).observe(t,{childList:true,subtree:true})}}catch(e){}});<\/script></body></html>`);
+			const _isDark = document.documentElement.classList.contains('dark');
+			const _bg = _isDark ? '#111827' : '#f9fafb';
+			w.document.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ''}/favicon.ico"><style>*{margin:0;padding:0;border:0;overflow:hidden}html,body{width:100%;height:100%;background-color:${_bg}}</style></head><body><iframe id="f" src="${window.location.href}" style="width:100%;height:100%;border:none;"></iframe><script>const f=document.getElementById('f');f.addEventListener('load',function(){try{const t=f.contentDocument.querySelector('title');if(t){document.title=t.innerText;new MutationObserver(()=>{document.title=t.innerText;}).observe(t,{childList:true,subtree:true})}}catch(e){}});<\/script></body></html>`);
 			w.document.close();
 			window.open(location.href, '_self', '');
 			window.close();
