@@ -518,8 +518,8 @@ const [assignmentsModal, setAssignmentsModal] = useState(false);
 }
 
 
-		<motion.div 
-		className="p-5 md:p-10 flex-1 h-screen">
+		<motion.div
+		className="p-5 md:p-10 flex-1">
 			<Head>
 				<title>
 					{course ? `${course?.name} - Grade Durian` : "Grade Durian"}
@@ -766,6 +766,7 @@ const [assignmentsModal, setAssignmentsModal] = useState(false);
 								</tbody>
 							</table>
 						</div>
+						<div className="pb-10" />
 				</motion.div>
 			)}
 		</motion.div></>
