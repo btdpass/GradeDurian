@@ -660,7 +660,6 @@ export default function Grades({
 														(c) => category === c.name
 													)}
 													onChange={(e) => updateCat(e.target.value, trueIndex)}
-													name={isMediumOrLarger ? category : abbreviate(category)}
 												>
 													{course?.categories.map((category, x) => (
 														<option value={x} key={x}>
