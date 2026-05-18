@@ -118,7 +118,7 @@ export default function SideBar({ studentInfo, logout,
 									<span className="flex-1 ml-3 whitespace-nowrap">Settings</span>
 								</div>
 							</li>
-							{router.pathname==="/grades" && 
+							{/* {router.pathname==="/grades" && 
 							<React.Fragment>
 							<li>
 								<Link
@@ -140,7 +140,7 @@ export default function SideBar({ studentInfo, logout,
 								</Link>
 							</li>
 							</React.Fragment>
-	 						}
+	 						} */}
 						</ul>
 					)}
 				</div>

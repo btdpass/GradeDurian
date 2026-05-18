@@ -360,26 +360,26 @@ export default function Grades({
 			<ClientOnly><Modal show={gpaModal} onClose={() => setGpaModal(false)} size="3xl">
 				<Modal.Header className="dark:bg-gray-800 dark:border-gray-700">GPA Calculator</Modal.Header>
 				<Modal.Body style={{maxHeight:400,minHeight:400}} className="overflow-y-auto p-0 dark:bg-gray-800">
-					{/* Summary bar */}
-					<div className="flex gap-8 px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-						<div>
-							<p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Unweighted GPA</p>
-							<p className="text-2xl font-bold text-gray-900 dark:text-white">{grades?.[mp]?.gpa.toFixed(2)}</p>
+					<div className="overflow-x-auto overflow-hidden rounded-b-lg">
+						{/* Summary bar */}
+						<div className="flex gap-8 px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+							<div>
+								<p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Unweighted GPA</p>
+								<p className="text-2xl font-bold text-gray-900 dark:text-white">{grades?.[mp]?.gpa.toFixed(2)}</p>
+							</div>
+							<div>
+								<p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Weighted GPA</p>
+								<p className="text-2xl font-bold text-primary-500">{grades?.[mp]?.wgpa.toFixed(2)}</p>
+							</div>
 						</div>
-						<div>
-							<p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Weighted GPA</p>
-							<p className="text-2xl font-bold text-primary-500">{grades?.[mp]?.wgpa.toFixed(2)}</p>
-						</div>
-					</div>
-					{/* Table */}
-					<div className="overflow-x-auto">
+						{/* Table */}
 						<table className="min-w-max w-full text-sm text-left text-gray-500 dark:text-gray-400">
 							<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
 								<tr>
 									<th className="py-3 px-4">Course</th>
 									<th className="py-3 px-4">Grade</th>
 									<th className="py-3 px-4">AP/Weighted</th>
-									<th className="py-3 px-4">Include</th>
+									<th className="py-3 px-4">Include?</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -511,8 +511,22 @@ export default function Grades({
 							{view === "card" ? <TbTable size={"1.3rem"} /> : <TbLayoutList size={"1.3rem"} />}
 						</button>
 
-						
-	{!isMediumOrLarger	&& <button
+						{/* {!isMediumOrLarger && 
+						<button
+							type="button"
+							onClick={() => {
+								const next = view === "card" ? "table" : "card";
+								setDefaultView(next);
+								localStorage.setItem("defaultView", next);
+								router.push({ query: { ...router.query, view: next } }, undefined, { shallow: true });
+							}}
+							className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm p-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+						>
+							{view === "card" ? <TbTable size={"1.3rem"} /> : <TbLayoutList size={"1.3rem"} />}
+						</button> } */}
+
+						{!isMediumOrLarger && 
+						<button
 							onClick={()=>{setSettingsModal(true);setModalBg(true)}}
 
 							>
@@ -520,7 +534,7 @@ export default function Grades({
 							className="md:text-3xl hover:text-gray-400 dark:hover:text-gray-400 dark:text-gray-200 text-gray-600"
 							size={30}
 							/>
-						</button>}
+						</button> }
 					</div>
 					{view === "card" && (
 						<div className="grid gap-5 2col:grid-cols-2 3col:grid-cols-3 4col:grid-cols-4 items-stretch w-full">
