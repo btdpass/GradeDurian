@@ -9,6 +9,11 @@ interface ScheduleProps {
 }
 
 const f = (v: any) => (Array.isArray(v) ? v[0] : v);
+const normalizeTeacher = (name: string) => {
+	if (!name) return name;
+	const parts = name.split(",");
+	return parts.length === 2 ? `${parts[1].trim()} ${parts[0].trim()}` : name;
+};
 const parsePeriod = (p: any) => {
 	const raw = String(f(p) ?? "");
 	return /^\d+$/.test(raw) ? parseInt(raw) : raw;
@@ -106,17 +111,37 @@ export default function Schedule({ client, createError }: ScheduleProps) {
 		else { setToday(false); setTerm(parseInt(val)); }
 	}
 
-	function matchClass(todayClass: any) {
-		const period = parseInt(f(todayClass.period));
-		const match = schedule.mainClasses.find((c: any) => parseInt(c.period) === period);
-		return {
-			name: match ? match.name : f(todayClass.name),
-			teacher: match ? match.teacher : f(todayClass.teacher),
-		};
+const filteredMain = schedule?.today?.main?.filter((c: any) => f(c.start) !== f(c.end)) ?? [];
+	const filteredCon  = schedule?.today?.con?.filter((c: any) => f(c.start) !== f(c.end)) ?? [];
+
+	const periodToMain: Record<number, any> = {};
+	for (const mc of schedule?.mainClasses ?? []) {
+		const raw = String(mc.period ?? "");
+		const parts = raw.split("-").map(Number);
+		const start = parts[0], end = parts.length > 1 ? parts[1] : parts[0];
+		for (let p = start; p <= end; p++) periodToMain[p] = mc;
 	}
 
-	const filteredMain = schedule?.today?.main?.filter((c: any) => f(c.start) !== f(c.end)) ?? [];
-	const filteredCon  = schedule?.today?.con?.filter((c: any) => f(c.start) !== f(c.end)) ?? [];
+	const mergedMain = filteredMain.reduce((acc: any[], c: any) => {
+		const period = parseInt(f(c.period));
+		const mc = periodToMain[period];
+		const prev = acc[acc.length - 1];
+		if (prev && mc && prev._mc === mc) {
+			prev.end = f(c.end);
+			prev.period = String(mc.period);
+		} else {
+			acc.push({
+				name: mc ? mc.name : f(c.name),
+				teacher: normalizeTeacher(mc ? mc.teacher : f(c.teacher)),
+				start: f(c.start),
+				end: f(c.end),
+				period: f(c.period),
+				room: f(c.room),
+				_mc: mc,
+			});
+		}
+		return acc;
+	}, []);
 
 	return (
 		<div className="p-5 md:p-10 h-full flex-1">
@@ -145,34 +170,31 @@ export default function Schedule({ client, createError }: ScheduleProps) {
 							<TableHead />
 							<tbody>
 								{/* Today view */}
-								{today && filteredMain.map((c: any, i: number) => {
-									const { name, teacher } = matchClass(c);
-									return (
-										<tr key={i} className={rowCls(i)}>
-											<td className={tdBold}>{f(c.start)} – {f(c.end)}</td>
-											<td className={tdCls}>{parsePeriod(c.period)}</td>
-											<td className={tdCls}>{name}</td>
-											<td className={tdCls}>{f(c.room)}</td>
-											<td className={tdCls}>{teacher}</td>
-										</tr>
-									);
-								})}
+								{today && mergedMain.map((c: any, i: number) => (
+									<tr key={i} className={rowCls(i)}>
+										<td className={tdBold}>{c.start} – {c.end}</td>
+										<td className={tdCls}>{parsePeriod(c.period)}</td>
+										<td className={tdCls}>{c.name}</td>
+										<td className={tdCls}>{c.room}</td>
+										<td className={tdCls}>{c.teacher}</td>
+									</tr>
+								))}
 								{today && schedule.today.con && (
 									<>
 										<tr>
-											<td colSpan={5} className={`${rowCls(filteredMain.length)} font-bold pl-4 text-lg text-gray-900 dark:text-white`}>
+											<td colSpan={5} className={`${rowCls(mergedMain.length)} font-bold pl-4 text-lg text-gray-900 dark:text-white`}>
 												{schedule.conClasses?.conName}:
 											</td>
 										</tr>
 										{filteredCon.map((c: any, i: number) => {
-											const ri = filteredMain.length + 1 + i;
+											const ri = mergedMain.length + 1 + i;
 											return (
 												<tr key={ri} className={rowCls(ri)}>
 													<td className={tdBold}>{f(c.start)} – {f(c.end)}</td>
 													<td className={tdCls}>{parsePeriod(c.period)}</td>
 													<td className={tdCls}>{f(c.name)}</td>
 													<td className={tdCls}>{f(c.room)}</td>
-													<td className={tdCls}>{f(c.teacher)}</td>
+													<td className={tdCls}>{normalizeTeacher(f(c.teacher))}</td>
 												</tr>
 											);
 										})}
@@ -186,7 +208,7 @@ export default function Schedule({ client, createError }: ScheduleProps) {
 										<td className={tdCls}>{parsePeriod(period)}</td>
 										<td className={tdCls}>{name}</td>
 										<td className={tdCls}>{room}</td>
-										<td className={tdCls}>{teacher}</td>
+										<td className={tdCls}>{normalizeTeacher(teacher)}</td>
 									</tr>
 								))}
 								{!today && schedule.conClasses && (
@@ -204,7 +226,7 @@ export default function Schedule({ client, createError }: ScheduleProps) {
 													<td className={tdCls}>{parsePeriod(period)}</td>
 													<td className={tdCls}>{name}</td>
 													<td className={tdCls}>{room}</td>
-													<td className={tdCls}>{teacher}</td>
+													<td className={tdCls}>{normalizeTeacher(teacher)}</td>
 												</tr>
 											);
 										})}
