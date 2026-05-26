@@ -164,7 +164,7 @@ function MyApp({ Component, pageProps }) {
 	const [donation,setDonation]=useState(undefined)
 	const isMediumOrLarger = width >= 768;
 	const hideCustomTheme = noCustomTheme.includes(router.pathname);
-	const [gated, setGated] = useState(true); // url masking
+	const [gated, setGated] = useState(false); // url masking
 	const logoColorApplied = useRef(false);
 
 	// const applyColor = (hex: string, ignoreCustomLogo = false) => {
