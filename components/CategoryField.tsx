@@ -11,7 +11,7 @@ export default function CategoryField({ children, value, onChange }: CategoryFie
 		<select
 			onChange={onChange}
 			value={value}
-			className="w-full bg-transparent border-none text-sm text-gray-500 dark:text-gray-400 dark:[color-scheme:dark] focus:ring-0 focus:outline-none cursor-pointer p-0"
+			className="block w-full p-2 text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
 		>
 			{children}
 		</select>
