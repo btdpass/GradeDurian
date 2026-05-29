@@ -675,7 +675,7 @@ const [assignmentsModal, setAssignmentsModal] = useState(false);
 									<col style={{ width: "100px" }} />
 									<col />
 									<col style={{ width: "120px" }} />
-									<col style={{ width: isMediumOrLarger ? "240px" : "170px" }} />
+									<col style={{ width: isMediumOrLarger ? "250px" : "180px" }} />
 									<col style={{ width: "50px" }} />
 								</colgroup>
 								<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
