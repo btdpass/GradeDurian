@@ -99,6 +99,13 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
     const [wlPickerOpen, setWlPickerOpen] = useState(false);
     const [wlSelectedUser, setWlSelectedUser] = useState<KnownUser | null>(null);
     const [wlSaving, setWlSaving] = useState(false);
+    const [wlManualMode, setWlManualMode] = useState(false);
+    const [wlManualUsername, setWlManualUsername] = useState("");
+    const [wlManualHostname, setWlManualHostname] = useState("md-mcps-psv.edupoint.com");
+
+    const [banManualMode, setBanManualMode] = useState(false);
+    const [banManualUsername, setBanManualUsername] = useState("");
+    const [banManualHostname, setBanManualHostname] = useState("md-mcps-psv.edupoint.com");
 
     const districtOptions = districts
         .map((d) => { try { return { name: d.name, hostname: new URL(d.parentVueUrl).hostname }; } catch { return null; } })
@@ -485,9 +492,42 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                             </div>
                                             <button onClick={() => setSelectedUser(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-2">✕</button>
                                         </div>
+                                    ) : banManualMode ? (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="block text-xs text-gray-500 dark:text-gray-400">Manual entry</label>
+                                                <button onClick={() => { setBanManualMode(false); setBanManualUsername(""); setBanManualHostname("md-mcps-psv.edupoint.com"); }} className="text-xs text-primary-500 hover:text-primary-600">Search known users</button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={banManualUsername}
+                                                onChange={(e) => setBanManualUsername(e.target.value)}
+                                                placeholder="Username"
+                                                className={inputCls}
+                                            />
+                                            <select
+                                                value={banManualHostname}
+                                                onChange={(e) => setBanManualHostname(e.target.value)}
+                                                className={inputCls}
+                                            >
+                                                <option value="">Select county / district…</option>
+                                                {districtOptions.map((d) => (
+                                                    <option key={d.hostname} value={d.hostname}>{d.name}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                onClick={() => { if (banManualUsername.trim() && banManualHostname) { setSelectedUser({ username: banManualUsername.trim(), hostname: banManualHostname }); setBanManualMode(false); setBanManualUsername(""); setBanManualHostname(""); } }}
+                                                disabled={!banManualUsername.trim() || !banManualHostname}
+                                                className="w-full py-1.5 rounded-lg border border-primary-400 dark:border-primary-600 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                                Confirm
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div>
-                                            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Select user</label>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label className="block text-xs text-gray-500 dark:text-gray-400">Select user</label>
+                                                <button onClick={() => setBanManualMode(true)} className="text-xs text-primary-500 hover:text-primary-600">Enter manually</button>
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={userSearch}
@@ -592,9 +632,42 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                             </div>
                                             <button onClick={() => setWlSelectedUser(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs px-2">✕</button>
                                         </div>
+                                    ) : wlManualMode ? (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="block text-xs text-gray-500 dark:text-gray-400">Manual entry</label>
+                                                <button onClick={() => { setWlManualMode(false); setWlManualUsername(""); setWlManualHostname(""); }} className="text-xs text-primary-500 hover:text-primary-600">Search known users</button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={wlManualUsername}
+                                                onChange={(e) => setWlManualUsername(e.target.value)}
+                                                placeholder="Username"
+                                                className={inputCls}
+                                            />
+                                            <select
+                                                value={wlManualHostname}
+                                                onChange={(e) => setWlManualHostname(e.target.value)}
+                                                className={inputCls}
+                                            >
+                                                <option value="">Select county / district…</option>
+                                                {districtOptions.map((d) => (
+                                                    <option key={d.hostname} value={d.hostname}>{d.name}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                onClick={() => { if (wlManualUsername.trim() && wlManualHostname) { setWlSelectedUser({ username: wlManualUsername.trim(), hostname: wlManualHostname }); setWlManualMode(false); setWlManualUsername(""); setWlManualHostname(""); } }}
+                                                disabled={!wlManualUsername.trim() || !wlManualHostname}
+                                                className="w-full py-1.5 rounded-lg border border-primary-400 dark:border-primary-600 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                                Confirm
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div>
-                                            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Select user</label>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label className="block text-xs text-gray-500 dark:text-gray-400">Select user</label>
+                                                <button onClick={() => setWlManualMode(true)} className="text-xs text-primary-500 hover:text-primary-600">Enter manually</button>
+                                            </div>
                                             <input
                                                 type="text"
                                                 value={wlSearch}
