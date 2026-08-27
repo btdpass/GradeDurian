@@ -1,12 +1,3 @@
-diff --git a/node_modules/studentvue/.DS_Store b/node_modules/studentvue/.DS_Store
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/studentvue/lib/.DS_Store b/node_modules/studentvue/lib/.DS_Store
-new file mode 100644
-index 0000000..e69de29
-diff --git a/node_modules/studentvue/lib/StudentVue/.DS_Store b/node_modules/studentvue/lib/StudentVue/.DS_Store
-new file mode 100644
-index 0000000..e69de29
 diff --git a/node_modules/studentvue/lib/StudentVue/Client/Client.js b/node_modules/studentvue/lib/StudentVue/Client/Client.js
 index a038a16..47875da 100644
 --- a/node_modules/studentvue/lib/StudentVue/Client/Client.js
@@ -39,7 +30,7 @@ index a038a16..47875da 100644
              const m = JSON.parse(cachedData ?? "{}");
              const identifier = this.district + this.username + reportingPeriodIndex + (orgYearGu ?? "");
 diff --git a/node_modules/studentvue/lib/StudentVue/StudentVue.js b/node_modules/studentvue/lib/StudentVue/StudentVue.js
-index 00b5314..0e871d7 100644
+index 00b5314..b49632e 100644
 --- a/node_modules/studentvue/lib/StudentVue/StudentVue.js
 +++ b/node_modules/studentvue/lib/StudentVue/StudentVue.js
 @@ -122,7 +122,7 @@
@@ -47,12 +38,12 @@ index 00b5314..0e871d7 100644
     * @returns {Promise<Client>} Returns the client and the information of the student upon successful login
     */
 -  function login(districtUrl, credentials, proxyUrl = "https://studentvuelib.up.railway.app") {
-+  function login(districtUrl, credentials, proxyUrl = "https://gradedurianproxy1.up.railway.app") {
++  function login(districtUrl, credentials, proxyUrl = "https://cloudproxy.gradedurian.workers.dev") {
      return new Promise((res, rej) => {
        if (districtUrl.length === 0) {
          return rej(new _RequestException.default({
 diff --git a/node_modules/studentvue/lib/utils/soap/Client/Client.js b/node_modules/studentvue/lib/utils/soap/Client/Client.js
-index 3458edc..295a58f 100644
+index 3458edc..b6cf752 100644
 --- a/node_modules/studentvue/lib/utils/soap/Client/Client.js
 +++ b/node_modules/studentvue/lib/utils/soap/Client/Client.js
 @@ -30,7 +30,7 @@
@@ -69,7 +60,7 @@ index 3458edc..295a58f 100644
        };
      }
 -    constructor(credentials, Purl = "https://studentvuelib.up.railway.app") {
-+    constructor(credentials, Purl = "https://gradedurianproxy1.up.railway.app") {
++    constructor(credentials, Purl = "https://cloudproxy.gradedurian.workers.dev") {
        this.__username__ = credentials.username;
        this.__password__ = credentials.password;
        this.__district__ = credentials.districtUrl;

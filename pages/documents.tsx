@@ -66,7 +66,11 @@ export default function Documents({ client, createError }: DocumentsProps) {
 			if (client.loadedDocuments == undefined) {
 				client.documents().then(([res]) => {
 					res.forEach((doc) => {
-						doc.file.comment = parseName(doc.file.comment);
+						// Document instances are constructed with credentials only, so their
+						// proxy URL falls back to the library default. Point them at the
+						// same proxy the logged-in client uses.
+						doc.url = client.url;
+						doc.comment = parseName(doc.comment);
 						doc.file.type = parseName(doc.file.type);
 					});
 					setDocuments(res);

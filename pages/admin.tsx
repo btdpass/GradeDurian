@@ -516,7 +516,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                                 ))}
                                             </select>
                                             <button
-                                                onClick={() => { if (banManualUsername.trim() && banManualHostname) { setSelectedUser({ username: banManualUsername.trim(), hostname: banManualHostname }); setBanManualMode(false); setBanManualUsername(""); setBanManualHostname(""); } }}
+                                                onClick={() => { if (banManualUsername.trim() && banManualHostname) { setSelectedUser({ username: banManualUsername.trim(), hostname: banManualHostname }); setBanManualMode(false); setBanManualUsername(""); setBanManualHostname("md-mcps-psv.edupoint.com"); } }}
                                                 disabled={!banManualUsername.trim() || !banManualHostname}
                                                 className="w-full py-1.5 rounded-lg border border-primary-400 dark:border-primary-600 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                                                 Confirm
@@ -636,7 +636,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <label className="block text-xs text-gray-500 dark:text-gray-400">Manual entry</label>
-                                                <button onClick={() => { setWlManualMode(false); setWlManualUsername(""); setWlManualHostname(""); }} className="text-xs text-primary-500 hover:text-primary-600">Search known users</button>
+                                                <button onClick={() => { setWlManualMode(false); setWlManualUsername(""); setWlManualHostname("md-mcps-psv.edupoint.com"); }} className="text-xs text-primary-500 hover:text-primary-600">Search known users</button>
                                             </div>
                                             <input
                                                 type="text"
@@ -656,7 +656,7 @@ export default function AdminPanel({ client, createError, districts = [] }: Admi
                                                 ))}
                                             </select>
                                             <button
-                                                onClick={() => { if (wlManualUsername.trim() && wlManualHostname) { setWlSelectedUser({ username: wlManualUsername.trim(), hostname: wlManualHostname }); setWlManualMode(false); setWlManualUsername(""); setWlManualHostname(""); } }}
+                                                onClick={() => { if (wlManualUsername.trim() && wlManualHostname) { setWlSelectedUser({ username: wlManualUsername.trim(), hostname: wlManualHostname }); setWlManualMode(false); setWlManualUsername(""); setWlManualHostname("md-mcps-psv.edupoint.com"); } }}
                                                 disabled={!wlManualUsername.trim() || !wlManualHostname}
                                                 className="w-full py-1.5 rounded-lg border border-primary-400 dark:border-primary-600 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                                                 Confirm
